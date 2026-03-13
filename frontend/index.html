@@ -1,0 +1,1382 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ResearchIQ — AI Research Intelligence Platform</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Playfair+Display:wght@400;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdn.plot.ly/plotly-2.32.0.min.js"></script>
+<style>
+  :root {
+    --bg: #0a0d14;
+    --surface: #111620;
+    --surface2: #1a2030;
+    --border: #1e2a3a;
+    --accent: #4ade80;
+    --accent2: #60a5fa;
+    --accent3: #f59e0b;
+    --danger: #f87171;
+    --text: #e2e8f0;
+    --muted: #64748b;
+    --card-bg: rgba(26,32,48,0.8);
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    font-family: 'Space Grotesk', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+  /* Grid Background */
+  body::before {
+    content:'';
+    position: fixed; inset:0;
+    background-image:
+      linear-gradient(rgba(74,222,128,0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(74,222,128,0.03) 1px, transparent 1px);
+    background-size: 40px 40px;
+    pointer-events: none; z-index:0;
+  }
+  /* ── Layout ── */
+  .app { display:flex; min-height:100vh; position:relative; z-index:1; }
+  /* ── Sidebar ── */
+  .sidebar {
+    width: 260px; min-height:100vh;
+    background: var(--surface);
+    border-right: 1px solid var(--border);
+    display: flex; flex-direction: column;
+    position: fixed; left:0; top:0; bottom:0;
+    z-index: 100;
+    transition: transform 0.3s;
+  }
+  .sidebar-logo {
+    padding: 28px 24px 20px;
+    border-bottom: 1px solid var(--border);
+  }
+  .logo-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 22px; font-weight: 700;
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    letter-spacing: -0.5px;
+  }
+  .logo-sub { font-size:11px; color: var(--muted); margin-top:3px; letter-spacing:1.5px; text-transform:uppercase; }
+  .sidebar-nav { padding: 16px 12px; flex:1; }
+  .nav-section { margin-bottom: 24px; }
+  .nav-label { font-size:10px; color: var(--muted); text-transform:uppercase; letter-spacing:1.5px; padding: 0 12px 8px; }
+  .nav-item {
+    display:flex; align-items:center; gap:10px;
+    padding: 10px 12px; border-radius:8px;
+    cursor:pointer; font-size:14px; color: var(--muted);
+    transition: all 0.2s; margin-bottom:2px;
+    border: 1px solid transparent;
+  }
+  .nav-item:hover { color: var(--text); background: var(--surface2); }
+  .nav-item.active {
+    color: var(--accent); background: rgba(74,222,128,0.08);
+    border-color: rgba(74,222,128,0.2);
+  }
+  .nav-item .icon { width:18px; text-align:center; font-size:16px; }
+  .sidebar-user {
+    padding: 16px; border-top: 1px solid var(--border);
+    display:flex; align-items:center; gap:12px;
+  }
+  .user-avatar {
+    width:36px; height:36px; border-radius:50%;
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    display:flex; align-items:center; justify-content:center;
+    font-weight:700; font-size:14px; color: var(--bg);
+  }
+  .user-info { flex:1; min-width:0; }
+  .user-name { font-size:13px; font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .user-role { font-size:11px; color: var(--muted); }
+  .logout-btn {
+    background:none; border:none; color: var(--muted); cursor:pointer;
+    font-size:18px; padding:4px; border-radius:4px;
+    transition: color 0.2s;
+  }
+  .logout-btn:hover { color: var(--danger); }
+  /* ── Main Content ── */
+  .main { margin-left:260px; flex:1; display:flex; flex-direction:column; }
+  .topbar {
+    padding: 20px 32px;
+    border-bottom: 1px solid var(--border);
+    display:flex; align-items:center; justify-content:space-between;
+    background: rgba(10,13,20,0.8);
+    backdrop-filter: blur(10px);
+    position: sticky; top:0; z-index:50;
+  }
+  .page-title { font-size:20px; font-weight:600; }
+  .page-subtitle { font-size:13px; color: var(--muted); margin-top:2px; }
+  .status-badge {
+    display:flex; align-items:center; gap:6px;
+    font-size:12px; color: var(--accent);
+    background: rgba(74,222,128,0.1); padding:6px 12px; border-radius:20px;
+    border: 1px solid rgba(74,222,128,0.2);
+  }
+  .status-dot { width:6px; height:6px; border-radius:50%; background:var(--accent); animation: pulse 2s infinite; }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
+  .content { padding: 32px; flex:1; }
+  /* ── Auth Pages ── */
+  .auth-page {
+    min-height:100vh; display:flex; align-items:center; justify-content:center;
+    background: var(--bg);
+  }
+  .auth-card {
+    width: 420px; background: var(--surface);
+    border: 1px solid var(--border); border-radius:16px;
+    padding: 40px;
+  }
+  .auth-logo { text-align:center; margin-bottom:32px; }
+  .auth-logo h1 { font-family:'Playfair Display',serif; font-size:28px; font-weight:700;
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    -webkit-background-clip:text; -webkit-text-fill-color:transparent; }
+  .auth-logo p { color: var(--muted); font-size:13px; margin-top:6px; }
+  .tabs { display:flex; background: var(--surface2); border-radius:8px; padding:4px; margin-bottom:28px; }
+  .tab { flex:1; text-align:center; padding:8px; border-radius:6px; cursor:pointer; font-size:13px; color: var(--muted); transition: all 0.2s; }
+  .tab.active { background: var(--surface); color: var(--text); font-weight:600; }
+  /* ── Forms ── */
+  .form-group { margin-bottom:16px; }
+  .form-label { display:block; font-size:12px; color: var(--muted); margin-bottom:6px; text-transform:uppercase; letter-spacing:0.5px; }
+  .form-input, .form-select, .form-textarea {
+    width:100%; padding: 10px 14px;
+    background: var(--bg); border: 1px solid var(--border);
+    border-radius:8px; color: var(--text); font-family:inherit; font-size:14px;
+    transition: border-color 0.2s;
+    outline: none;
+  }
+  .form-input:focus, .form-select:focus, .form-textarea:focus { border-color: var(--accent); }
+  .form-textarea { resize:vertical; min-height:80px; }
+  .form-select option { background: var(--surface); }
+  .form-row { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+  /* ── Buttons ── */
+  .btn {
+    display:inline-flex; align-items:center; justify-content:center; gap:8px;
+    padding: 10px 20px; border-radius:8px; border:none;
+    font-family:inherit; font-size:14px; font-weight:600;
+    cursor:pointer; transition: all 0.2s; text-decoration:none;
+  }
+  .btn-primary { background: var(--accent); color: var(--bg); }
+  .btn-primary:hover { background: #22c55e; transform: translateY(-1px); box-shadow: 0 4px 20px rgba(74,222,128,0.3); }
+  .btn-secondary { background: var(--surface2); color: var(--text); border: 1px solid var(--border); }
+  .btn-secondary:hover { border-color: var(--accent2); }
+  .btn-sm { padding: 6px 14px; font-size:12px; }
+  .btn-full { width:100%; }
+  .btn:disabled { opacity:0.5; cursor:not-allowed; }
+  /* ── Cards ── */
+  .card {
+    background: var(--card-bg); border: 1px solid var(--border);
+    border-radius:12px; padding:24px; backdrop-filter: blur(10px);
+  }
+  .card-title { font-size:14px; font-weight:600; color: var(--muted); text-transform:uppercase; letter-spacing:1px; margin-bottom:16px; }
+  /* ── Stats Grid ── */
+  .stats-grid { display:grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap:16px; margin-bottom:24px; }
+  .stat-card {
+    background: var(--card-bg); border: 1px solid var(--border);
+    border-radius:12px; padding:20px;
+    transition: border-color 0.2s, transform 0.2s;
+  }
+  .stat-card:hover { border-color: var(--accent); transform: translateY(-2px); }
+  .stat-label { font-size:11px; color: var(--muted); text-transform:uppercase; letter-spacing:1px; }
+  .stat-value { font-size:32px; font-weight:700; margin-top:8px; font-family:'Playfair Display',serif; }
+  .stat-value.green { color: var(--accent); }
+  .stat-value.blue { color: var(--accent2); }
+  .stat-value.amber { color: var(--accent3); }
+  .stat-sub { font-size:12px; color: var(--muted); margin-top:4px; }
+  /* ── Table ── */
+  .table-wrap { overflow-x:auto; }
+  table { width:100%; border-collapse:collapse; font-size:13px; }
+  th { text-align:left; padding: 10px 16px; border-bottom: 1px solid var(--border); color: var(--muted); font-size:11px; text-transform:uppercase; letter-spacing:1px; }
+  td { padding: 12px 16px; border-bottom: 1px solid rgba(30,42,58,0.5); }
+  tr:hover td { background: rgba(26,32,48,0.5); }
+  /* ── Badges ── */
+  .badge { display:inline-block; padding: 2px 8px; border-radius:20px; font-size:11px; font-weight:600; }
+  .badge-green { background: rgba(74,222,128,0.15); color: var(--accent); }
+  .badge-blue { background: rgba(96,165,250,0.15); color: var(--accent2); }
+  .badge-amber { background: rgba(245,158,11,0.15); color: var(--accent3); }
+  .badge-red { background: rgba(248,113,113,0.15); color: var(--danger); }
+  .badge-gray { background: rgba(100,116,139,0.15); color: var(--muted); }
+  /* ── Chat Interface ── */
+  .chat-container { display:flex; flex-direction:column; height:calc(100vh - 200px); min-height:500px; }
+  .chat-messages {
+    flex:1; overflow-y:auto; padding:20px;
+    display:flex; flex-direction:column; gap:16px;
+    background: var(--surface); border: 1px solid var(--border); border-radius:12px;
+    margin-bottom:16px;
+  }
+  .chat-messages::-webkit-scrollbar { width:4px; }
+  .chat-messages::-webkit-scrollbar-thumb { background: var(--border); border-radius:2px; }
+  .message { display:flex; gap:12px; max-width:85%; }
+  .message.user { flex-direction:row-reverse; align-self:flex-end; }
+  .msg-avatar { width:32px; height:32px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:14px; flex-shrink:0; }
+  .msg-avatar.ai { background: linear-gradient(135deg,var(--accent),var(--accent2)); color:var(--bg); font-weight:700; }
+  .msg-avatar.user { background: var(--surface2); }
+  .msg-bubble { padding: 12px 16px; border-radius:12px; font-size:14px; line-height:1.6; }
+  .message.ai .msg-bubble { background: var(--surface2); border: 1px solid var(--border); border-bottom-left-radius:4px; }
+  .message.user .msg-bubble { background: rgba(74,222,128,0.1); border: 1px solid rgba(74,222,128,0.2); border-bottom-right-radius:4px; color: var(--text); }
+  .msg-sources { margin-top:10px; padding-top:10px; border-top:1px solid var(--border); }
+  .msg-sources-label { font-size:11px; color:var(--muted); margin-bottom:6px; }
+  .source-chip { display:inline-block; padding:2px 8px; background:rgba(96,165,250,0.1); border:1px solid rgba(96,165,250,0.2); border-radius:20px; font-size:11px; color:var(--accent2); margin:2px; }
+  .chat-input-area { display:flex; gap:12px; }
+  .chat-input {
+    flex:1; padding:12px 16px;
+    background:var(--surface); border: 1px solid var(--border);
+    border-radius:12px; color:var(--text); font-family:inherit; font-size:14px;
+    outline:none; transition: border-color 0.2s; resize:none;
+  }
+  .chat-input:focus { border-color:var(--accent); }
+  .suggestions-bar { display:flex; flex-wrap:wrap; gap:8px; margin-bottom:12px; }
+  .suggestion-chip {
+    padding:6px 12px; background:var(--surface2); border:1px solid var(--border);
+    border-radius:20px; font-size:12px; color:var(--muted); cursor:pointer;
+    transition: all 0.2s;
+  }
+  .suggestion-chip:hover { border-color:var(--accent); color:var(--accent); }
+  /* ── Upload Area ── */
+  .upload-drop {
+    border: 2px dashed var(--border); border-radius:12px;
+    padding:40px; text-align:center; cursor:pointer;
+    transition: all 0.2s; margin-bottom:24px;
+  }
+  .upload-drop:hover, .upload-drop.dragover { border-color:var(--accent); background:rgba(74,222,128,0.05); }
+  .upload-drop .icon { font-size:40px; margin-bottom:12px; }
+  .upload-drop h3 { font-size:16px; margin-bottom:6px; }
+  .upload-drop p { font-size:13px; color:var(--muted); }
+  /* ── Progress ── */
+  .progress-bar { height:4px; background:var(--surface2); border-radius:2px; overflow:hidden; }
+  .progress-fill { height:100%; border-radius:2px; background: linear-gradient(90deg,var(--accent),var(--accent2)); transition:width 0.3s; }
+  /* ── Alerts ── */
+  .alert { padding:12px 16px; border-radius:8px; font-size:13px; margin-bottom:16px; display:flex; align-items:center; gap:10px; }
+  .alert-success { background:rgba(74,222,128,0.1); border:1px solid rgba(74,222,128,0.2); color:var(--accent); }
+  .alert-error { background:rgba(248,113,113,0.1); border:1px solid rgba(248,113,113,0.2); color:var(--danger); }
+  .alert-info { background:rgba(96,165,250,0.1); border:1px solid rgba(96,165,250,0.2); color:var(--accent2); }
+  /* ── Plotly charts dark theme ── */
+  .chart-container { width:100%; min-height:300px; }
+  /* ── Loading ── */
+  .spinner { display:inline-block; width:18px; height:18px; border:2px solid rgba(74,222,128,0.3); border-top-color:var(--accent); border-radius:50%; animation:spin 0.7s linear infinite; }
+  @keyframes spin { to{transform:rotate(360deg)} }
+  .loading-state { display:flex; align-items:center; justify-content:center; gap:12px; padding:40px; color:var(--muted); }
+  /* ── Sections ── */
+  .section { display:none; }
+  .section.active { display:block; }
+  /* ── Page header ── */
+  .page-header { margin-bottom:28px; }
+  .page-header h2 { font-size:24px; font-weight:700; font-family:'Playfair Display',serif; }
+  .page-header p { color:var(--muted); font-size:14px; margin-top:4px; }
+  /* ── Two column ── */
+  .two-col { display:grid; grid-template-columns:1fr 1fr; gap:20px; }
+  .three-col { display:grid; grid-template-columns:repeat(3,1fr); gap:16px; }
+  @media(max-width:900px) { .two-col,.three-col { grid-template-columns:1fr; } }
+  /* ── Mono text ── */
+  .mono { font-family:'JetBrains Mono',monospace; }
+  /* ── Typing indicator ── */
+  .typing { display:flex; align-items:center; gap:4px; padding:12px 16px; }
+  .typing span { width:6px; height:6px; border-radius:50%; background:var(--muted); animation:typing 1.2s infinite; }
+  .typing span:nth-child(2) { animation-delay:0.2s; }
+  .typing span:nth-child(3) { animation-delay:0.4s; }
+  @keyframes typing { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-4px)} }
+  /* ── Score bar ── */
+  .score-bar { display:flex; align-items:center; gap:10px; }
+  .score-track { flex:1; height:6px; background:var(--surface2); border-radius:3px; overflow:hidden; }
+  .score-fill { height:100%; border-radius:3px; background:linear-gradient(90deg,var(--accent2),var(--accent)); }
+  /* ── Keyword cloud ── */
+  .keyword-cloud { display:flex; flex-wrap:wrap; gap:8px; }
+  .keyword-tag { padding:4px 12px; border-radius:20px; font-size:12px; cursor:default; transition:transform 0.2s; }
+  .keyword-tag:hover { transform:scale(1.05); }
+  /* ── Empty state ── */
+  .empty-state { text-align:center; padding:60px 20px; color:var(--muted); }
+  .empty-state .icon { font-size:48px; margin-bottom:16px; }
+  .empty-state h3 { font-size:18px; color:var(--text); margin-bottom:8px; }
+</style>
+</head>
+<body>
+
+<!-- ═══════════════════ AUTH PAGE ═══════════════════ -->
+<div id="authPage" class="auth-page">
+  <div class="auth-card">
+    <div class="auth-logo">
+      <h1>ResearchIQ</h1>
+      <p>AI-Powered Research Intelligence Platform</p>
+    </div>
+    <div class="tabs">
+      <div class="tab active" onclick="switchAuthTab('login')">Sign In</div>
+      <div class="tab" onclick="switchAuthTab('register')">Register</div>
+    </div>
+    <div id="authAlert"></div>
+
+    <!-- Login Form -->
+    <div id="loginForm">
+      <div class="form-group">
+        <label class="form-label">Email Address</label>
+        <input type="email" id="loginEmail" class="form-input" placeholder="you@university.edu">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Password</label>
+        <input type="password" id="loginPass" class="form-input" placeholder="••••••••">
+      </div>
+      <button class="btn btn-primary btn-full" onclick="doLogin()" id="loginBtn">
+        Sign In to ResearchIQ
+      </button>
+    </div>
+
+    <!-- Register Form -->
+    <div id="registerForm" style="display:none">
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Full Name</label>
+          <input type="text" id="regName" class="form-input" placeholder="Dr. Jane Smith">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Email</label>
+          <input type="email" id="regEmail" class="form-input" placeholder="you@university.edu">
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Password</label>
+        <input type="password" id="regPass" class="form-input" placeholder="Min 8 characters">
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Department</label>
+          <select id="regDept" class="form-select">
+            <option value="">Select...</option>
+            <option>Computer Science</option>
+            <option>Electronics Engineering</option>
+            <option>Mechanical Engineering</option>
+            <option>Biomedical Engineering</option>
+            <option>Data Science</option>
+            <option>Physics</option>
+            <option>Mathematics</option>
+            <option>Chemistry</option>
+            <option>Civil Engineering</option>
+            <option>Management Studies</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Role</label>
+          <select id="regRole" class="form-select">
+            <option value="">Select...</option>
+            <option value="student">Student</option>
+            <option value="faculty">Faculty</option>
+            <option value="research_head">Research Head</option>
+          </select>
+        </div>
+      </div>
+      <button class="btn btn-primary btn-full" onclick="doRegister()">Create Account</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════ MAIN APP ═══════════════════ -->
+<div id="mainApp" class="app" style="display:none">
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    <div class="sidebar-logo">
+      <div class="logo-title">ResearchIQ</div>
+      <div class="logo-sub">Intelligence Platform</div>
+    </div>
+    <nav class="sidebar-nav">
+      <div class="nav-section">
+        <div class="nav-label">Main</div>
+        <div class="nav-item active" onclick="navigate('dashboard')">
+          <span class="icon">📊</span> Dashboard
+        </div>
+        <div class="nav-item" onclick="navigate('chat')">
+          <span class="icon">🤖</span> AI Research Chat
+        </div>
+      </div>
+      <div class="nav-section">
+        <div class="nav-label">Research</div>
+        <div class="nav-item" onclick="navigate('upload')">
+          <span class="icon">📤</span> Upload Paper
+        </div>
+        <div class="nav-item" onclick="navigate('papers')">
+          <span class="icon">📄</span> Paper Library
+        </div>
+      </div>
+      <div class="nav-section">
+        <div class="nav-label">Analytics</div>
+        <div class="nav-item" onclick="navigate('trends')">
+          <span class="icon">📈</span> Research Trends
+        </div>
+        <div class="nav-item" onclick="navigate('collaboration')">
+          <span class="icon">🕸️</span> Collaboration Map
+        </div>
+        <div class="nav-item" onclick="navigate('impact')">
+          <span class="icon">⭐</span> Impact Rankings
+        </div>
+      </div>
+      <div class="nav-section" id="adminNav" style="display:none">
+        <div class="nav-label">Research Head</div>
+        <div class="nav-item" onclick="navigate('researchhead')">
+          <span class="icon">🎯</span> Full Report
+        </div>
+      </div>
+    </nav>
+    <div class="sidebar-user">
+      <div class="user-avatar" id="userAvatar">?</div>
+      <div class="user-info">
+        <div class="user-name" id="userName">Loading...</div>
+        <div class="user-role" id="userRole">—</div>
+      </div>
+      <button class="logout-btn" onclick="doLogout()" title="Logout">⏻</button>
+    </div>
+  </aside>
+
+  <!-- Main Content -->
+  <main class="main">
+    <div class="topbar">
+      <div>
+        <div class="page-title" id="pageTitle">Dashboard</div>
+        <div class="page-subtitle" id="pageSubtitle">Research intelligence overview</div>
+      </div>
+      <div class="status-badge">
+        <div class="status-dot"></div>
+        System Active
+      </div>
+    </div>
+    <div class="content">
+
+      <!-- ── DASHBOARD ── -->
+      <div id="sec-dashboard" class="section active">
+        <div id="dashboardContent">
+          <div class="loading-state"><div class="spinner"></div> Loading dashboard...</div>
+        </div>
+      </div>
+
+      <!-- ── CHAT ── -->
+      <div id="sec-chat" class="section">
+        <div class="page-header">
+          <h2>AI Research Assistant</h2>
+          <p>Ask anything about your institution's research. Powered by RAG + Gemini.</p>
+        </div>
+        <div class="suggestions-bar" id="suggestions"></div>
+        <div class="chat-container">
+          <div class="chat-messages" id="chatMessages">
+            <div class="message ai">
+              <div class="msg-avatar ai">AI</div>
+              <div class="msg-bubble">
+                👋 Hello! I'm your AI Research Intelligence Assistant. I can help you explore research trends, find collaboration patterns, identify high-impact papers, and answer questions about your institution's research output.<br><br>
+                Try asking: <em>"Which departments produce the most research?"</em> or <em>"What are the trending research domains?"</em>
+              </div>
+            </div>
+          </div>
+          <div class="chat-input-area">
+            <textarea class="chat-input" id="chatInput" rows="2" placeholder="Ask about research trends, authors, domains..." onkeydown="handleChatKey(event)"></textarea>
+            <button class="btn btn-primary" onclick="sendMessage()" id="sendBtn">Send ✦</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── UPLOAD ── -->
+      <div id="sec-upload" class="section">
+        <div class="page-header">
+          <h2>Upload Research Paper</h2>
+          <p>Upload a PDF and our pipeline will automatically extract, embed, and analyze it.</p>
+        </div>
+        <div id="uploadAlert"></div>
+        <div class="two-col">
+          <div>
+            <div class="upload-drop" id="dropZone" onclick="document.getElementById('pdfFile').click()">
+              <div class="icon">📎</div>
+              <h3>Drop PDF here or click to browse</h3>
+              <p>Only PDF files are accepted</p>
+              <p id="selectedFile" style="margin-top:12px; color:var(--accent); font-weight:600;"></p>
+            </div>
+            <input type="file" id="pdfFile" accept=".pdf" style="display:none" onchange="onFileSelect(event)">
+            <div class="form-group">
+              <label class="form-label">Paper Title *</label>
+              <input type="text" id="upTitle" class="form-input" placeholder="Full paper title">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Abstract *</label>
+              <textarea id="upAbstract" class="form-textarea" rows="4" placeholder="Paper abstract..."></textarea>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Authors (comma-separated) *</label>
+              <input type="text" id="upAuthors" class="form-input" placeholder="Dr. Smith, Dr. Johnson, R. Kumar">
+            </div>
+          </div>
+          <div>
+            <div class="form-group">
+              <label class="form-label">Keywords (comma-separated) *</label>
+              <input type="text" id="upKeywords" class="form-input" placeholder="machine learning, neural networks, NLP">
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label class="form-label">Department *</label>
+                <select id="upDept" class="form-select">
+                  <option value="">Select...</option>
+                  <option>Computer Science</option>
+                  <option>Electronics Engineering</option>
+                  <option>Mechanical Engineering</option>
+                  <option>Biomedical Engineering</option>
+                  <option>Data Science</option>
+                  <option>Physics</option>
+                  <option>Mathematics</option>
+                  <option>Chemistry</option>
+                  <option>Civil Engineering</option>
+                  <option>Management Studies</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Publication Year *</label>
+                <input type="number" id="upYear" class="form-input" placeholder="2024" min="1990" max="2026">
+              </div>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Conference / Journal Name *</label>
+              <input type="text" id="upVenue" class="form-input" placeholder="NeurIPS 2024 / IEEE Transactions">
+            </div>
+            <div class="card" style="margin-top:8px; padding:16px; border-color:rgba(74,222,128,0.2);">
+              <div style="font-size:12px; color:var(--muted); line-height:1.8;">
+                ✦ Text extraction via PyPDF2/pdfminer<br>
+                ✦ Embeddings via Gemini text-embedding-004<br>
+                ✦ Stored in ChromaDB vector database<br>
+                ✦ ML impact score prediction<br>
+                ✦ Auto trend cluster assignment
+              </div>
+            </div>
+            <div id="uploadProgress" style="display:none; margin-top:16px;">
+              <div style="font-size:13px; color:var(--muted); margin-bottom:8px;" id="uploadProgressText">Uploading...</div>
+              <div class="progress-bar"><div class="progress-fill" id="progressFill" style="width:0%"></div></div>
+            </div>
+            <button class="btn btn-primary btn-full" style="margin-top:20px;" onclick="uploadPaper()" id="uploadBtn">
+              📤 Upload & Process Paper
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── PAPERS LIBRARY ── -->
+      <div id="sec-papers" class="section">
+        <div class="page-header">
+          <h2>Paper Library</h2>
+          <p>All uploaded research papers in the system.</p>
+        </div>
+        <div style="display:flex; gap:12px; margin-bottom:20px;">
+          <select class="form-select" style="width:200px;" id="filterDept" onchange="loadPapers()">
+            <option value="">All Departments</option>
+            <option>Computer Science</option>
+            <option>Electronics Engineering</option>
+            <option>Mechanical Engineering</option>
+            <option>Biomedical Engineering</option>
+            <option>Data Science</option>
+            <option>Physics</option>
+            <option>Mathematics</option>
+            <option>Chemistry</option>
+          </select>
+          <input type="number" class="form-input" style="width:120px;" id="filterYear" placeholder="Year" onchange="loadPapers()">
+          <button class="btn btn-secondary btn-sm" onclick="loadPapers()">🔍 Filter</button>
+        </div>
+        <div id="papersContent">
+          <div class="loading-state"><div class="spinner"></div> Loading papers...</div>
+        </div>
+      </div>
+
+      <!-- ── TRENDS ── -->
+      <div id="sec-trends" class="section">
+        <div class="page-header">
+          <h2>Research Trends</h2>
+          <p>TF-IDF vectorization + KMeans clustering reveals emerging research domains.</p>
+        </div>
+        <div id="trendsContent">
+          <div class="loading-state"><div class="spinner"></div> Running trend analysis...</div>
+        </div>
+      </div>
+
+      <!-- ── COLLABORATION ── -->
+      <div id="sec-collaboration" class="section">
+        <div class="page-header">
+          <h2>Collaboration Network</h2>
+          <p>Co-authorship graph built with NetworkX. Nodes = authors, edges = shared papers.</p>
+        </div>
+        <div id="collaborationContent">
+          <div class="loading-state"><div class="spinner"></div> Building collaboration network...</div>
+        </div>
+      </div>
+
+      <!-- ── IMPACT ── -->
+      <div id="sec-impact" class="section">
+        <div class="page-header">
+          <h2>Impact Rankings</h2>
+          <p>Papers ranked by RandomForestRegressor impact prediction model.</p>
+        </div>
+        <div id="impactContent">
+          <div class="loading-state"><div class="spinner"></div> Computing impact scores...</div>
+        </div>
+      </div>
+
+      <!-- ── RESEARCH HEAD ── -->
+      <div id="sec-researchhead" class="section">
+        <div class="page-header">
+          <h2>Research Head Report</h2>
+          <p>Comprehensive analytics for research leadership.</p>
+        </div>
+        <div id="researchHeadContent">
+          <div class="loading-state"><div class="spinner"></div> Compiling full report...</div>
+        </div>
+      </div>
+
+    </div>
+  </main>
+</div>
+
+<script>
+// ═══════════════════════════════════════════════════════════
+//  APP STATE
+// ═══════════════════════════════════════════════════════════
+const API = '';  // Same origin
+let token = localStorage.getItem('riq_token');
+let currentUser = JSON.parse(localStorage.getItem('riq_user') || 'null');
+let currentSection = 'dashboard';
+
+// ═══════════════════════════════════════════════════════════
+//  API HELPER
+// ═══════════════════════════════════════════════════════════
+async function api(path, opts = {}) {
+  const headers = { 'Content-Type': 'application/json', ...(opts.headers || {}) };
+  if (token && !opts.noAuth) headers['Authorization'] = `Bearer ${token}`;
+  const res = await fetch(API + path, { ...opts, headers });
+  if (res.status === 401) { doLogout(); return null; }
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(data.detail || `HTTP ${res.status}`);
+  return data;
+}
+
+// ═══════════════════════════════════════════════════════════
+//  AUTH
+// ═══════════════════════════════════════════════════════════
+function switchAuthTab(tab) {
+  document.querySelectorAll('.tab').forEach((t,i) => t.classList.toggle('active', (i===0&&tab==='login')||(i===1&&tab==='register')));
+  document.getElementById('loginForm').style.display = tab === 'login' ? 'block' : 'none';
+  document.getElementById('registerForm').style.display = tab === 'register' ? 'block' : 'none';
+  document.getElementById('authAlert').innerHTML = '';
+}
+
+function showAuthAlert(msg, type='error') {
+  document.getElementById('authAlert').innerHTML = `<div class="alert alert-${type}">${msg}</div>`;
+}
+
+async function doLogin() {
+  const email = document.getElementById('loginEmail').value.trim();
+  const pass = document.getElementById('loginPass').value;
+  if (!email || !pass) return showAuthAlert('Please enter email and password');
+  const btn = document.getElementById('loginBtn');
+  btn.disabled = true; btn.innerHTML = '<div class="spinner"></div> Signing in...';
+  try {
+    const form = new URLSearchParams({ username: email, password: pass });
+    const res = await fetch('/api/auth/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: form
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.detail || 'Login failed');
+    token = data.access_token;
+    currentUser = data.user;
+    localStorage.setItem('riq_token', token);
+    localStorage.setItem('riq_user', JSON.stringify(currentUser));
+    initApp();
+  } catch(e) {
+    showAuthAlert(e.message);
+  } finally {
+    btn.disabled = false; btn.innerHTML = 'Sign In to ResearchIQ';
+  }
+}
+
+async function doRegister() {
+  const name = document.getElementById('regName').value.trim();
+  const email = document.getElementById('regEmail').value.trim();
+  const pass = document.getElementById('regPass').value;
+  const dept = document.getElementById('regDept').value;
+  const role = document.getElementById('regRole').value;
+  if (!name||!email||!pass||!dept||!role) return showAuthAlert('All fields are required');
+  if (pass.length < 6) return showAuthAlert('Password must be at least 6 characters');
+  try {
+    await api('/api/auth/register', {
+      method:'POST', noAuth:true,
+      body: JSON.stringify({ name, email, password:pass, department:dept, role })
+    });
+    showAuthAlert('Account created! Please sign in.', 'success');
+    switchAuthTab('login');
+    document.getElementById('loginEmail').value = email;
+  } catch(e) { showAuthAlert(e.message); }
+}
+
+function doLogout() {
+  localStorage.removeItem('riq_token');
+  localStorage.removeItem('riq_user');
+  token = null; currentUser = null;
+  document.getElementById('authPage').style.display = 'flex';
+  document.getElementById('mainApp').style.display = 'none';
+}
+
+// ═══════════════════════════════════════════════════════════
+//  APP INIT
+// ═══════════════════════════════════════════════════════════
+function initApp() {
+  document.getElementById('authPage').style.display = 'none';
+  document.getElementById('mainApp').style.display = 'flex';
+  // Populate user info
+  document.getElementById('userName').textContent = currentUser.name;
+  document.getElementById('userRole').textContent = currentUser.role.replace('_',' ');
+  document.getElementById('userAvatar').textContent = currentUser.name[0].toUpperCase();
+  // Show admin nav for research head
+  if (currentUser.role === 'research_head') {
+    document.getElementById('adminNav').style.display = 'block';
+  }
+  navigate('dashboard');
+  loadSuggestions();
+}
+
+// ═══════════════════════════════════════════════════════════
+//  NAVIGATION
+// ═══════════════════════════════════════════════════════════
+const pageTitles = {
+  dashboard: ['Dashboard', 'Research intelligence overview'],
+  chat: ['AI Research Assistant', 'RAG-powered research chatbot'],
+  upload: ['Upload Paper', 'Add research to the knowledge base'],
+  papers: ['Paper Library', 'Browse all research papers'],
+  trends: ['Research Trends', 'TF-IDF + KMeans topic clustering'],
+  collaboration: ['Collaboration Network', 'Co-authorship graph analysis'],
+  impact: ['Impact Rankings', 'ML-predicted citation impact'],
+  researchhead: ['Research Head Report', 'Full institutional analytics'],
+};
+
+function navigate(section) {
+  // Update active nav item
+  document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+  event && event.currentTarget && event.currentTarget.classList.add('active');
+  // Find by section name in onclick
+  document.querySelectorAll('.nav-item').forEach(el => {
+    if (el.getAttribute('onclick') && el.getAttribute('onclick').includes(`'${section}'`)) {
+      el.classList.add('active');
+    }
+  });
+  // Show section
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  const sec = document.getElementById(`sec-${section}`);
+  if (sec) sec.classList.add('active');
+  // Update topbar
+  const [title, sub] = pageTitles[section] || ['ResearchIQ', ''];
+  document.getElementById('pageTitle').textContent = title;
+  document.getElementById('pageSubtitle').textContent = sub;
+  currentSection = section;
+  // Load section data
+  if (section === 'dashboard') loadDashboard();
+  else if (section === 'papers') loadPapers();
+  else if (section === 'trends') loadTrends();
+  else if (section === 'collaboration') loadCollaboration();
+  else if (section === 'impact') loadImpact();
+  else if (section === 'researchhead') loadResearchHead();
+}
+
+// ═══════════════════════════════════════════════════════════
+//  DASHBOARD
+// ═══════════════════════════════════════════════════════════
+async function loadDashboard() {
+  try {
+    const data = await api('/api/dashboard/overview');
+    const recentHTML = (data.recent_uploads || []).map(p => `
+      <tr>
+        <td><span class="mono" style="font-size:11px;">${(p.title||'').substring(0,50)}${p.title?.length>50?'…':''}</span></td>
+        <td><span class="badge badge-blue">${p.department||'—'}</span></td>
+        <td style="color:var(--muted)">${p.upload_date ? p.upload_date.substring(0,10) : '—'}</td>
+      </tr>`).join('') || '<tr><td colspan="3" style="color:var(--muted);text-align:center;">No papers yet</td></tr>';
+
+    const deptData = data.department_counts || [];
+    const yearData = data.year_wise_counts || [];
+
+    document.getElementById('dashboardContent').innerHTML = `
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-label">Total Papers</div>
+          <div class="stat-value green">${data.total_papers || 0}</div>
+          <div class="stat-sub">In knowledge base</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Processed</div>
+          <div class="stat-value blue">${data.processed_papers || 0}</div>
+          <div class="stat-sub">Embedded & indexed</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Researchers</div>
+          <div class="stat-value amber">${data.total_users || 0}</div>
+          <div class="stat-sub">Registered users</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Departments</div>
+          <div class="stat-value green">${deptData.length}</div>
+          <div class="stat-sub">Active departments</div>
+        </div>
+      </div>
+      <div class="two-col" style="margin-bottom:20px;">
+        <div class="card">
+          <div class="card-title">Publications by Department</div>
+          <div id="deptChart" class="chart-container" style="min-height:250px;"></div>
+        </div>
+        <div class="card">
+          <div class="card-title">Publications by Year</div>
+          <div id="yearChart" class="chart-container" style="min-height:250px;"></div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-title">Recent Uploads</div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Title</th><th>Department</th><th>Date</th></tr></thead>
+            <tbody>${recentHTML}</tbody>
+          </table>
+        </div>
+      </div>`;
+
+    // Plotly charts
+    if (deptData.length) {
+      Plotly.newPlot('deptChart', [{
+        x: deptData.map(d=>d.count), y: deptData.map(d=>d.department),
+        type:'bar', orientation:'h',
+        marker:{ color:'rgba(74,222,128,0.7)', line:{color:'rgba(74,222,128,1)',width:1} }
+      }], plotlyLayout(''), {responsive:true, displayModeBar:false});
+    }
+    if (yearData.length) {
+      Plotly.newPlot('yearChart', [{
+        x: yearData.map(d=>d.year), y: yearData.map(d=>d.count),
+        type:'scatter', mode:'lines+markers', fill:'tozeroy',
+        line:{color:'rgba(96,165,250,0.8)',width:2},
+        marker:{color:'rgba(96,165,250,1)'},
+        fillcolor:'rgba(96,165,250,0.1)'
+      }], plotlyLayout(''), {responsive:true, displayModeBar:false});
+    }
+  } catch(e) {
+    document.getElementById('dashboardContent').innerHTML = `<div class="alert alert-error">Failed to load dashboard: ${e.message}</div>`;
+  }
+}
+
+// ═══════════════════════════════════════════════════════════
+//  CHAT
+// ═══════════════════════════════════════════════════════════
+async function loadSuggestions() {
+  try {
+    const data = await api('/api/chat/suggestions');
+    document.getElementById('suggestions').innerHTML = (data.suggestions || []).slice(0,4).map(s =>
+      `<div class="suggestion-chip" onclick="useSuggestion('${s.replace(/'/g,"\\'")}')">💡 ${s}</div>`
+    ).join('');
+  } catch(e) {}
+}
+
+function useSuggestion(s) { document.getElementById('chatInput').value = s; }
+
+function handleChatKey(e) { if (e.key==='Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); } }
+
+async function sendMessage() {
+  const input = document.getElementById('chatInput');
+  const msg = input.value.trim();
+  if (!msg) return;
+  input.value = '';
+  const btn = document.getElementById('sendBtn');
+  btn.disabled = true;
+
+  appendMessage('user', msg);
+  const typingEl = appendTyping();
+
+  try {
+    const data = await api('/api/chat/ask', {
+      method: 'POST',
+      body: JSON.stringify({ message: msg })
+    });
+    typingEl.remove();
+    appendMessage('ai', data.answer, data.sources || []);
+  } catch(e) {
+    typingEl.remove();
+    appendMessage('ai', `❌ Error: ${e.message}. Please check your Gemini API key in .env`);
+  }
+  btn.disabled = false;
+}
+
+function appendMessage(role, text, sources=[]) {
+  const container = document.getElementById('chatMessages');
+  const div = document.createElement('div');
+  div.className = `message ${role}`;
+  const sourcesHTML = sources.length ? `
+    <div class="msg-sources">
+      <div class="msg-sources-label">📎 Sources (${sources.length})</div>
+      ${sources.map(s=>`<span class="source-chip" title="${s.paper_id}">${(s.title||'').substring(0,40)}… (${(s.similarity*100).toFixed(0)}%)</span>`).join('')}
+    </div>` : '';
+  div.innerHTML = `
+    <div class="msg-avatar ${role}">${role==='ai'?'AI':'👤'}</div>
+    <div class="msg-bubble">${text.replace(/\n/g,'<br>')}${sourcesHTML}</div>`;
+  container.appendChild(div);
+  container.scrollTop = container.scrollHeight;
+  return div;
+}
+
+function appendTyping() {
+  const container = document.getElementById('chatMessages');
+  const div = document.createElement('div');
+  div.className = 'message ai';
+  div.innerHTML = `<div class="msg-avatar ai">AI</div><div class="msg-bubble"><div class="typing"><span></span><span></span><span></span></div></div>`;
+  container.appendChild(div);
+  container.scrollTop = container.scrollHeight;
+  return div;
+}
+
+// ═══════════════════════════════════════════════════════════
+//  UPLOAD
+// ═══════════════════════════════════════════════════════════
+function onFileSelect(e) {
+  const f = e.target.files[0];
+  if (f) document.getElementById('selectedFile').textContent = `✓ ${f.name} (${(f.size/1024/1024).toFixed(2)} MB)`;
+}
+
+// Drag and drop
+const dropZone = document.getElementById('dropZone');
+dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.classList.add('dragover'); });
+dropZone.addEventListener('dragleave', () => dropZone.classList.remove('dragover'));
+dropZone.addEventListener('drop', e => {
+  e.preventDefault(); dropZone.classList.remove('dragover');
+  const f = e.dataTransfer.files[0];
+  if (f && f.name.endsWith('.pdf')) {
+    document.getElementById('pdfFile').files = e.dataTransfer.files;
+    document.getElementById('selectedFile').textContent = `✓ ${f.name}`;
+  }
+});
+
+async function uploadPaper() {
+  const file = document.getElementById('pdfFile').files[0];
+  const title = document.getElementById('upTitle').value.trim();
+  const abstract = document.getElementById('upAbstract').value.trim();
+  const authors = document.getElementById('upAuthors').value.trim();
+  const keywords = document.getElementById('upKeywords').value.trim();
+  const dept = document.getElementById('upDept').value;
+  const year = document.getElementById('upYear').value;
+  const venue = document.getElementById('upVenue').value.trim();
+
+  if (!file||!title||!abstract||!authors||!keywords||!dept||!year||!venue) {
+    document.getElementById('uploadAlert').innerHTML = '<div class="alert alert-error">All fields and a PDF file are required.</div>';
+    return;
+  }
+  const btn = document.getElementById('uploadBtn');
+  btn.disabled = true;
+  document.getElementById('uploadProgress').style.display = 'block';
+  animateProgress();
+
+  const formData = new FormData();
+  formData.append('file', file);
+  formData.append('title', title);
+  formData.append('abstract', abstract);
+  formData.append('authors', authors);
+  formData.append('keywords', keywords);
+  formData.append('department', dept);
+  formData.append('publication_year', year);
+  formData.append('venue', venue);
+
+  try {
+    const res = await fetch('/api/papers/upload', {
+      method: 'POST',
+      headers: { 'Authorization': `Bearer ${token}` },
+      body: formData
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.detail || 'Upload failed');
+    document.getElementById('uploadAlert').innerHTML = `
+      <div class="alert alert-success">
+        ✅ Paper uploaded! ID: <span class="mono">${data.paper_id}</span><br>
+        Processing started in background (embedding generation may take 1-2 minutes).
+      </div>`;
+    // Clear form
+    ['upTitle','upAuthors','upKeywords','upYear','upVenue'].forEach(id => document.getElementById(id).value='');
+    document.getElementById('upAbstract').value='';
+    document.getElementById('upDept').value='';
+    document.getElementById('selectedFile').textContent='';
+    document.getElementById('pdfFile').value='';
+  } catch(e) {
+    document.getElementById('uploadAlert').innerHTML = `<div class="alert alert-error">❌ ${e.message}</div>`;
+  } finally {
+    btn.disabled = false;
+    document.getElementById('uploadProgress').style.display = 'none';
+  }
+}
+
+function animateProgress() {
+  let w = 0;
+  const fill = document.getElementById('progressFill');
+  const txt = document.getElementById('uploadProgressText');
+  const steps = ['Uploading PDF...', 'Extracting text...', 'Generating embeddings...', 'Storing in ChromaDB...'];
+  const interval = setInterval(() => {
+    w = Math.min(w + Math.random()*15, 90);
+    fill.style.width = w + '%';
+    txt.textContent = steps[Math.floor(w/25)] || 'Processing...';
+    if (w >= 90) clearInterval(interval);
+  }, 400);
+}
+
+// ═══════════════════════════════════════════════════════════
+//  PAPERS
+// ═══════════════════════════════════════════════════════════
+async function loadPapers() {
+  const dept = document.getElementById('filterDept').value;
+  const year = document.getElementById('filterYear').value;
+  let url = '/api/papers/list?limit=50';
+  if (dept) url += `&department=${encodeURIComponent(dept)}`;
+  if (year) url += `&year=${year}`;
+  document.getElementById('papersContent').innerHTML = '<div class="loading-state"><div class="spinner"></div> Loading...</div>';
+  try {
+    const data = await api(url);
+    if (!data.papers || !data.papers.length) {
+      document.getElementById('papersContent').innerHTML = '<div class="empty-state"><div class="icon">📭</div><h3>No papers found</h3><p>Upload your first research paper to get started.</p></div>';
+      return;
+    }
+    const rows = data.papers.map(p => {
+      const statusClass = {completed:'badge-green',processing:'badge-amber',pending:'badge-gray',failed:'badge-red'}[p.processing_status] || 'badge-gray';
+      const score = p.predicted_impact_score;
+      return `<tr>
+        <td><div style="font-weight:500;margin-bottom:2px;">${(p.title||'').substring(0,60)}${p.title?.length>60?'…':''}</div>
+            <div style="font-size:11px;color:var(--muted)">${(p.authors||[]).join(', ').substring(0,50)}</div></td>
+        <td><span class="badge badge-blue">${p.department||'—'}</span></td>
+        <td>${p.publication_year||'—'}</td>
+        <td style="font-size:11px;color:var(--muted);max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${p.venue||'—'}</td>
+        <td><span class="badge ${statusClass}">${p.processing_status||'—'}</span></td>
+        <td>${score!==null&&score!==undefined?`<div class="score-bar"><div class="score-track"><div class="score-fill" style="width:${score}%"></div></div><span style="font-size:11px;color:var(--muted)">${score.toFixed(0)}</span></div>`:'—'}</td>
+      </tr>`;
+    }).join('');
+
+    document.getElementById('papersContent').innerHTML = `
+      <div style="margin-bottom:12px;font-size:13px;color:var(--muted)">Showing ${data.papers.length} of ${data.total} papers</div>
+      <div class="card" style="padding:0;">
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Title / Authors</th><th>Department</th><th>Year</th><th>Venue</th><th>Status</th><th>Impact Score</th></tr></thead>
+            <tbody>${rows}</tbody>
+          </table>
+        </div>
+      </div>`;
+  } catch(e) {
+    document.getElementById('papersContent').innerHTML = `<div class="alert alert-error">Failed to load papers: ${e.message}</div>`;
+  }
+}
+
+// ═══════════════════════════════════════════════════════════
+//  TRENDS
+// ═══════════════════════════════════════════════════════════
+async function loadTrends() {
+  document.getElementById('trendsContent').innerHTML = '<div class="loading-state"><div class="spinner"></div> Running TF-IDF + KMeans clustering...</div>';
+  try {
+    const data = await api('/api/dashboard/trends');
+    if (data.error || data.total_papers_analyzed === 0) {
+      document.getElementById('trendsContent').innerHTML = '<div class="alert alert-info">📊 Upload at least 3 processed papers to run trend analysis.</div>';
+      return;
+    }
+    const keywords = data.trending_keywords || [];
+    const clusters = data.clusters || {};
+    const clusterList = Object.values(clusters);
+
+    const kColors = ['rgba(74,222,128,0.8)','rgba(96,165,250,0.8)','rgba(245,158,11,0.8)','rgba(248,113,113,0.8)','rgba(167,139,250,0.8)','rgba(34,211,238,0.8)'];
+
+    const kwHTML = keywords.slice(0,20).map((k,i) => {
+      const size = Math.max(12, Math.min(24, 12 + k.count*2));
+      const color = kColors[i % kColors.length];
+      return `<span class="keyword-tag" style="background:${color.replace('0.8','0.15')};color:${color.replace('0.8','1')};font-size:${size}px;">${k.keyword} (${k.count})</span>`;
+    }).join('');
+
+    const clusterHTML = clusterList.map((c,i) => `
+      <div class="card">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+          <div style="font-weight:600;font-size:14px;">Cluster ${c.cluster_id}: ${c.topic_label}</div>
+          <span class="badge badge-blue">${c.paper_count} papers</span>
+        </div>
+        <div style="font-size:12px;color:var(--muted);margin-bottom:8px;">Top Terms</div>
+        <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px;">
+          ${(c.top_terms||[]).map(t=>`<span class="badge badge-gray">${t}</span>`).join('')}
+        </div>
+        <div style="font-size:12px;color:var(--muted);margin-bottom:4px;">Departments</div>
+        <div>${Object.entries(c.departments||{}).map(([d,n])=>`<span class="badge badge-blue" style="margin:2px;">${d}: ${n}</span>`).join('')}</div>
+      </div>`).join('');
+
+    document.getElementById('trendsContent').innerHTML = `
+      <div style="margin-bottom:20px;">
+        <div class="card" style="margin-bottom:20px;">
+          <div class="card-title">Trending Keyword Cloud</div>
+          <div class="keyword-cloud">${kwHTML}</div>
+        </div>
+        <div class="card" style="margin-bottom:20px;">
+          <div class="card-title">Keyword Frequency</div>
+          <div id="kwChart" style="min-height:250px;"></div>
+        </div>
+        <div class="card-title" style="margin-bottom:12px;">Research Clusters (${clusterList.length})</div>
+        <div class="three-col">${clusterHTML}</div>
+      </div>`;
+
+    if (keywords.length) {
+      Plotly.newPlot('kwChart', [{
+        x: keywords.slice(0,15).map(k=>k.keyword),
+        y: keywords.slice(0,15).map(k=>k.count),
+        type:'bar',
+        marker:{ color: keywords.slice(0,15).map((_,i)=>kColors[i%kColors.length]) }
+      }], plotlyLayout(''), {responsive:true, displayModeBar:false});
+    }
+  } catch(e) {
+    document.getElementById('trendsContent').innerHTML = `<div class="alert alert-error">Trend analysis failed: ${e.message}</div>`;
+  }
+}
+
+// ═══════════════════════════════════════════════════════════
+//  COLLABORATION
+// ═══════════════════════════════════════════════════════════
+async function loadCollaboration() {
+  document.getElementById('collaborationContent').innerHTML = '<div class="loading-state"><div class="spinner"></div> Building NetworkX graph...</div>';
+  try {
+    const data = await api('/api/dashboard/collaboration');
+    const stats = data.stats || {};
+    const graph = data.graph || { nodes:[], edges:[] };
+
+    if (stats.error || !graph.nodes.length) {
+      document.getElementById('collaborationContent').innerHTML = '<div class="alert alert-info">🕸️ Upload papers with multiple authors to generate the collaboration network.</div>';
+      return;
+    }
+
+    // Plotly network graph
+    const edgeX=[], edgeY=[];
+    const nodeMap = {};
+    graph.nodes.forEach(n => nodeMap[n.id] = n);
+    graph.edges.forEach(e => {
+      const s=nodeMap[e.source], t=nodeMap[e.target];
+      if(s&&t) { edgeX.push(s.x,t.x,null); edgeY.push(s.y,t.y,null); }
+    });
+
+    const topCollab = (stats.top_collaborators || []).map(c =>
+      `<tr><td>${c.author}</td><td><div class="score-bar"><div class="score-track"><div class="score-fill" style="width:${Math.min(c.collaboration_weight*10,100)}%"></div></div><span style="font-size:11px;">${c.collaboration_weight}</span></div></td></tr>`
+    ).join('');
+
+    document.getElementById('collaborationContent').innerHTML = `
+      <div class="stats-grid" style="margin-bottom:20px;">
+        <div class="stat-card"><div class="stat-label">Total Authors</div><div class="stat-value green">${stats.total_authors||0}</div></div>
+        <div class="stat-card"><div class="stat-label">Collaborations</div><div class="stat-value blue">${stats.total_collaborations||0}</div></div>
+        <div class="stat-card"><div class="stat-label">Avg Collaborations</div><div class="stat-value amber">${stats.avg_collaborations_per_author||0}</div></div>
+        <div class="stat-card"><div class="stat-label">Research Communities</div><div class="stat-value green">${stats.connected_components||0}</div></div>
+      </div>
+      <div class="two-col">
+        <div class="card">
+          <div class="card-title">Collaboration Network Graph</div>
+          <div id="networkChart" style="min-height:400px;"></div>
+        </div>
+        <div class="card">
+          <div class="card-title">Top Collaborating Authors</div>
+          <div class="table-wrap">
+            <table><thead><tr><th>Author</th><th>Collaboration Weight</th></tr></thead>
+            <tbody>${topCollab||'<tr><td colspan="2" style="color:var(--muted);text-align:center;">No data</td></tr>'}</tbody></table>
+          </div>
+        </div>
+      </div>`;
+
+    // Draw network with Plotly
+    const colors = ['rgba(74,222,128,0.8)','rgba(96,165,250,0.8)','rgba(245,158,11,0.8)','rgba(248,113,113,0.8)'];
+    Plotly.newPlot('networkChart', [
+      { x:edgeX, y:edgeY, type:'scatter', mode:'lines', line:{color:'rgba(100,116,139,0.3)',width:1}, hoverinfo:'none' },
+      {
+        x: graph.nodes.map(n=>n.x), y: graph.nodes.map(n=>n.y),
+        type:'scatter', mode:'markers+text',
+        text: graph.nodes.map(n=>n.id.split(' ').slice(-1)[0]),
+        textposition:'top center', textfont:{size:9, color:'rgba(226,232,240,0.7)'},
+        marker:{
+          size: graph.nodes.map(n=>Math.max(8,Math.min(30,8+n.degree*3))),
+          color: graph.nodes.map(n=>n.degree),
+          colorscale:[['0','rgba(96,165,250,0.7)'],['1','rgba(74,222,128,0.9)']],
+          line:{color:'rgba(255,255,255,0.2)',width:1}
+        },
+        hovertemplate:'<b>%{customdata}</b><br>Papers: %{meta}<extra></extra>',
+        customdata: graph.nodes.map(n=>n.id),
+        meta: graph.nodes.map(n=>n.paper_count),
+      }
+    ], {
+      ...plotlyLayout(''),
+      showlegend:false,
+      xaxis:{visible:false,showgrid:false,zeroline:false},
+      yaxis:{visible:false,showgrid:false,zeroline:false},
+      margin:{l:10,r:10,t:10,b:10}
+    }, {responsive:true, displayModeBar:false});
+
+  } catch(e) {
+    document.getElementById('collaborationContent').innerHTML = `<div class="alert alert-error">Collaboration analysis failed: ${e.message}</div>`;
+  }
+}
+
+// ═══════════════════════════════════════════════════════════
+//  IMPACT
+// ═══════════════════════════════════════════════════════════
+async function loadImpact() {
+  document.getElementById('impactContent').innerHTML = '<div class="loading-state"><div class="spinner"></div> Computing RandomForest predictions...</div>';
+  try {
+    const data = await api('/api/dashboard/impact?top_n=15');
+    const papers = data.top_papers || [];
+    if (!papers.length) {
+      document.getElementById('impactContent').innerHTML = '<div class="alert alert-info">📈 Upload papers to generate impact predictions.</div>';
+      return;
+    }
+    const rows = papers.map((p,i) => `
+      <tr>
+        <td><span style="color:var(--accent);font-weight:700;">#${i+1}</span></td>
+        <td>
+          <div style="font-weight:500;">${(p.title||'').substring(0,55)}${p.title?.length>55?'…':''}</div>
+          <div style="font-size:11px;color:var(--muted)">${(p.authors||[]).slice(0,2).join(', ')}</div>
+        </td>
+        <td><span class="badge badge-blue">${p.department||'—'}</span></td>
+        <td>${p.publication_year||'—'}</td>
+        <td style="max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:12px;">${p.venue||'—'}</td>
+        <td>
+          <div class="score-bar">
+            <div class="score-track" style="width:100px;">
+              <div class="score-fill" style="width:${p.predicted_impact_score||0}%"></div>
+            </div>
+            <span style="font-weight:700;color:${p.predicted_impact_score>70?'var(--accent)':p.predicted_impact_score>40?'var(--accent3)':'var(--muted)'}">
+              ${(p.predicted_impact_score||0).toFixed(1)}
+            </span>
+          </div>
+        </td>
+      </tr>`).join('');
+
+    document.getElementById('impactContent').innerHTML = `
+      <div class="card" style="margin-bottom:20px;padding:16px;border-color:rgba(74,222,128,0.2);">
+        <div style="font-size:13px;color:var(--muted);">
+          Impact score (0–100) predicted by <strong style="color:var(--text);">RandomForestRegressor</strong> using features: 
+          venue prestige, recency, keyword relevance, author productivity, collaboration size, and abstract quality.
+        </div>
+      </div>
+      <div class="card" style="padding:0;">
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Rank</th><th>Title / Authors</th><th>Department</th><th>Year</th><th>Venue</th><th>Impact Score</th></tr></thead>
+            <tbody>${rows}</tbody>
+          </table>
+        </div>
+      </div>`;
+  } catch(e) {
+    document.getElementById('impactContent').innerHTML = `<div class="alert alert-error">Impact prediction failed: ${e.message}</div>`;
+  }
+}
+
+// ═══════════════════════════════════════════════════════════
+//  RESEARCH HEAD
+// ═══════════════════════════════════════════════════════════
+async function loadResearchHead() {
+  if (currentUser.role !== 'research_head') {
+    document.getElementById('researchHeadContent').innerHTML = '<div class="alert alert-error">🔒 Access restricted to Research Head role only.</div>';
+    return;
+  }
+  document.getElementById('researchHeadContent').innerHTML = '<div class="loading-state"><div class="spinner"></div> Compiling comprehensive report...</div>';
+  try {
+    const data = await api('/api/dashboard/research-head');
+    const summary = data.summary || {};
+    const deptCounts = data.department_counts || {};
+    const topAuthors = data.top_authors || [];
+    const topVenues = data.top_venues || [];
+    const keywords = data.trending_keywords || [];
+    const impactPapers = data.top_impact_papers || [];
+    const users = data.user_activity || [];
+
+    const authorRows = topAuthors.map(a => `<tr><td>${a.author}</td><td>${a.papers}</td></tr>`).join('');
+    const venueRows = topVenues.map(v => `<tr><td>${v.venue||'—'}</td><td>${v.count}</td></tr>`).join('');
+    const impactRows = impactPapers.map((p,i) => `<tr>
+      <td><span style="color:var(--accent);font-weight:700;">#${i+1}</span></td>
+      <td>${(p.title||'').substring(0,45)}…</td>
+      <td>${p.department||'—'}</td>
+      <td><span style="color:var(--accent);font-weight:700;">${(p.predicted_impact_score||0).toFixed(1)}</span></td>
+    </tr>`).join('');
+
+    const deptChartData = Object.entries(deptCounts);
+
+    document.getElementById('researchHeadContent').innerHTML = `
+      <div class="stats-grid" style="margin-bottom:24px;">
+        <div class="stat-card"><div class="stat-label">Total Papers</div><div class="stat-value green">${summary.total_papers||0}</div></div>
+        <div class="stat-card"><div class="stat-label">Departments</div><div class="stat-value blue">${summary.total_departments||0}</div></div>
+        <div class="stat-card"><div class="stat-label">Registered Users</div><div class="stat-value amber">${summary.total_users||0}</div></div>
+      </div>
+      <div class="two-col" style="margin-bottom:20px;">
+        <div class="card">
+          <div class="card-title">Department Publication Map</div>
+          <div id="rhDeptChart" style="min-height:300px;"></div>
+        </div>
+        <div class="card">
+          <div class="card-title">Trending Keywords</div>
+          <div class="keyword-cloud">
+            ${keywords.slice(0,15).map((k,i)=>{
+              const colors=['rgba(74,222,128','rgba(96,165,250','rgba(245,158,11','rgba(248,113,113','rgba(167,139,250'];
+              const c=colors[i%colors.length];
+              return `<span class="keyword-tag" style="background:${c},0.15);color:${c},1);font-size:${Math.max(11,Math.min(20,11+k.count))}px">${k.keyword} <strong>${k.count}</strong></span>`;
+            }).join('')}
+          </div>
+        </div>
+      </div>
+      <div class="three-col" style="margin-bottom:20px;">
+        <div class="card">
+          <div class="card-title">Top Authors by Papers</div>
+          <div class="table-wrap"><table>
+            <thead><tr><th>Author</th><th>Papers</th></tr></thead>
+            <tbody>${authorRows||'<tr><td colspan="2" style="color:var(--muted)">No data</td></tr>'}</tbody>
+          </table></div>
+        </div>
+        <div class="card">
+          <div class="card-title">Top Publication Venues</div>
+          <div class="table-wrap"><table>
+            <thead><tr><th>Venue</th><th>Papers</th></tr></thead>
+            <tbody>${venueRows||'<tr><td colspan="2" style="color:var(--muted)">No data</td></tr>'}</tbody>
+          </table></div>
+        </div>
+        <div class="card">
+          <div class="card-title">Predicted High-Impact</div>
+          <div class="table-wrap"><table>
+            <thead><tr><th>#</th><th>Title</th><th>Dept</th><th>Score</th></tr></thead>
+            <tbody>${impactRows||'<tr><td colspan="4" style="color:var(--muted)">No data</td></tr>'}</tbody>
+          </table></div>
+        </div>
+      </div>`;
+
+    if (deptChartData.length) {
+      Plotly.newPlot('rhDeptChart', [{
+        labels: deptChartData.map(d=>d[0]),
+        values: deptChartData.map(d=>d[1]),
+        type:'pie',
+        hole:0.4,
+        marker:{colors:['rgba(74,222,128,0.8)','rgba(96,165,250,0.8)','rgba(245,158,11,0.8)','rgba(248,113,113,0.8)','rgba(167,139,250,0.8)','rgba(34,211,238,0.8)','rgba(251,191,36,0.8)','rgba(52,211,153,0.8)']},
+        textfont:{color:'#e2e8f0'}
+      }], {
+        ...plotlyLayout(''),
+        margin:{l:10,r:10,t:10,b:10},
+        legend:{font:{color:'#64748b',size:11}}
+      }, {responsive:true, displayModeBar:false});
+    }
+  } catch(e) {
+    document.getElementById('researchHeadContent').innerHTML = `<div class="alert alert-error">Report failed: ${e.message}</div>`;
+  }
+}
+
+// ═══════════════════════════════════════════════════════════
+//  PLOTLY DARK THEME HELPER
+// ═══════════════════════════════════════════════════════════
+function plotlyLayout(title) {
+  return {
+    title: title ? {text:title, font:{color:'#94a3b8',size:13}} : undefined,
+    paper_bgcolor: 'transparent',
+    plot_bgcolor: 'transparent',
+    font: {color:'#64748b', family:'Space Grotesk'},
+    xaxis: {gridcolor:'rgba(30,42,58,0.8)', zerolinecolor:'rgba(30,42,58,0.8)', tickfont:{color:'#64748b'}},
+    yaxis: {gridcolor:'rgba(30,42,58,0.8)', zerolinecolor:'rgba(30,42,58,0.8)', tickfont:{color:'#64748b'}},
+    margin: {l:50, r:20, t:30, b:50},
+  };
+}
+
+// ═══════════════════════════════════════════════════════════
+//  BOOT
+// ═══════════════════════════════════════════════════════════
+if (token && currentUser) {
+  initApp();
+}
+
+// Enter key on login
+document.getElementById('loginPass').addEventListener('keydown', e => { if(e.key==='Enter') doLogin(); });
+</script>
+</body>
+</html>
