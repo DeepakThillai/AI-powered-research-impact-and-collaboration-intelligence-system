@@ -33,7 +33,7 @@ class ChromaManager:
                 metadata={"hnsw:space": "cosine"}
             )
             count = ChromaManager._collection.count()
-            logger.info(f"✅ ChromaDB ready. Collection '{self.COLLECTION_NAME}': {count} embeddings")
+            logger.info(f"ChromaDB ready. Collection '{self.COLLECTION_NAME}': {count} embeddings")
         except Exception as e:
             logger.error(f"ChromaDB init failed: {e}")
             raise
@@ -81,7 +81,7 @@ class ChromaManager:
                 documents=doc_texts,
                 metadatas=doc_metadatas,
             )
-            logger.info(f"✅ Stored {len(doc_ids)} embeddings for paper {paper_id[:8]}")
+            logger.info(f"Stored {len(doc_ids)} embeddings for paper {paper_id[:8]}")
         except Exception as e:
             logger.error(f"Failed to store embeddings for {paper_id}: {e}")
             raise

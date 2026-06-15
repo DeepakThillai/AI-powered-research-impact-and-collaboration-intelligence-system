@@ -127,7 +127,7 @@ class ImpactPredictor:
             y = self._generate_synthetic_labels(papers)
             self.model.fit(X, y)
             self.is_fitted = True
-            logger.info(f"✅ Impact predictor trained on {len(papers)} papers")
+            logger.info(f"Impact predictor trained on {len(papers)} papers")
         except Exception as e:
             logger.warning(f"Impact predictor training skipped: {e}")
 

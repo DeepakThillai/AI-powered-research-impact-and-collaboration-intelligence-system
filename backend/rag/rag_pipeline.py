@@ -38,14 +38,19 @@ class RAGPipeline:
         try:
             from groq import Groq
             self._client = Groq(api_key=settings.groq_api_key)
-            logger.info(f"✅ Groq LLM initialized: {settings.llm_model}")
+            logger.info(f"Groq LLM initialized: {settings.llm_model}")
         except ImportError:
             raise ImportError("groq package not installed. Run: pip install groq")
         except Exception as e:
             logger.error(f"Groq init failed: {e}")
             raise
 
-    def retrieve(self, query: str, n_results: int = 8, department: Optional[str] = None) -> List[Dict]:
+    # Free-tier TPM budget for openai/gpt-oss-120b is 8000 tokens (input + output).
+    # Reserve ~1500 for the answer, leaving ~6500 for system prompt + context.
+    # Rough estimate: 1 token ≈ 4 chars.
+    _MAX_CONTEXT_CHARS = 6500 * 4  # ~26 000 chars hard cap on the context string
+
+    def retrieve(self, query: str, n_results: int = 4, department: Optional[str] = None) -> List[Dict]:
         """Retrieve relevant paper chunks from ChromaDB."""
         results = self.chroma.search(query, n_results=n_results, department_filter=department)
         logger.debug(f"Retrieved {len(results)} chunks for: '{query[:80]}'")
@@ -62,20 +67,26 @@ class RAGPipeline:
             if pid and pid not in seen_papers:
                 seen_papers[pid] = chunk
 
-        parts = [f"USER QUESTION: {query}\n\nRELEVANT RESEARCH PAPERS FROM KNOWLEDGE BASE:\n"]
+        parts = [f"USER QUESTION: {query}\n\nRELEVANT RESEARCH PAPERS:\n"]
+        budget = self._MAX_CONTEXT_CHARS - len(parts[0])
+
         for i, chunk in enumerate(seen_papers.values(), 1):
             meta = chunk.get("metadata", {})
-            parts.append(
-                f"[Paper {i}]\n"
-                f"Title: {meta.get('title', 'Unknown')}\n"
+            # Truncate excerpt to stay within budget — 200 chars per paper
+            excerpt = chunk.get("text", "")[:200]
+            entry = (
+                f"[{i}] {meta.get('title', 'Unknown')} "
+                f"({meta.get('publication_year', '?')})\n"
                 f"Authors: {meta.get('authors', 'Unknown')}\n"
-                f"Department: {meta.get('department', 'Unknown')}\n"
-                f"Year: {meta.get('publication_year', 'Unknown')}\n"
-                f"Venue: {meta.get('venue', 'Unknown')}\n"
+                f"Dept: {meta.get('department', '?')} | "
                 f"Keywords: {meta.get('keywords', '')}\n"
-                f"Excerpt: {chunk.get('text', '')[:600]}\n"
-                f"Relevance: {chunk.get('similarity_score', 0):.2%}\n"
+                f"Excerpt: {excerpt}\n"
             )
+            if len(entry) > budget:
+                break
+            parts.append(entry)
+            budget -= len(entry)
+
         return "\n".join(parts)
 
     def _get_stats_context(self) -> str:
@@ -83,37 +94,26 @@ class RAGPipeline:
         try:
             col = get_papers_collection()
             total = col.count_documents({})
-            pipeline = [{"$group": {"_id": "$department", "count": {"$sum": 1}}}]
-            dept_counts = {
-                r["_id"]: r["count"]
-                for r in col.aggregate(pipeline)
-                if r["_id"]
-            }
             years = [y for y in col.distinct("publication_year") if y]
             year_range = f"{min(years)}–{max(years)}" if years else "N/A"
-            return (
-                f"Database summary: {total} papers | "
-                f"Years: {year_range} | "
-                f"Departments: {dept_counts}"
-            )
+            # Keep stats brief — just total and year range to save tokens
+            return f"{total} papers in DB, years {year_range}."
         except Exception:
-            return "Database statistics unavailable."
+            return ""
 
     def generate_answer(self, query: str, department_filter: Optional[str] = None) -> Dict:
         """
         Full RAG pipeline. Returns:
         { answer: str, sources: list, retrieved_count: int, timestamp: str }
         """
-        retrieved = self.retrieve(query, n_results=8, department=department_filter)
+        retrieved = self.retrieve(query, n_results=4, department=department_filter)
         context = self._build_context(retrieved, query)
         stats_context = self._get_stats_context()
 
         full_prompt = (
             f"{context}\n\n"
-            f"SYSTEM STATISTICS: {stats_context}\n\n"
-            f"Please answer the question: {query}\n\n"
-            "Provide a detailed, insightful answer citing specific papers, "
-            "authors, and departments where relevant."
+            f"Stats: {stats_context}\n\n"
+            f"Answer concisely: {query}"
         )
 
         try:
@@ -123,9 +123,10 @@ class RAGPipeline:
                     {"role": "system", "content": self.SYSTEM_PROMPT},
                     {"role": "user", "content": full_prompt},
                 ],
-                temperature=0.7,
-                max_tokens=1500,   # NOTE: Groq uses max_tokens, not max_completion_tokens
+                temperature=1,
+                max_completion_tokens=1500,
                 top_p=1,
+                reasoning_effort="medium",
                 stream=False,
                 stop=None,
             )
@@ -133,7 +134,7 @@ class RAGPipeline:
         except Exception as e:
             logger.error(f"Groq LLM call failed: {e}")
             answer = (
-                f"⚠️ LLM error: {str(e)}\n\n"
+                f"LLM error: {str(e)}\n\n"
                 "Please verify your GROQ_API_KEY in the .env file and "
                 "ensure the model name is correct."
             )

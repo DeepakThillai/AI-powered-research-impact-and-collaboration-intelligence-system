@@ -38,9 +38,9 @@ class DatabaseManager:
             cls._client.server_info()  # Force connection check
             cls._db = cls._client[settings.mongodb_db_name]
             cls._create_indexes()
-            logger.info(f"✅ Connected to MongoDB: {settings.mongodb_db_name}")
+            logger.info(f"Connected to MongoDB: {settings.mongodb_db_name}")
         except Exception as e:
-            logger.error(f"❌ MongoDB connection failed: {e}")
+            logger.error(f"MongoDB connection failed: {e}")
             raise
 
     @classmethod
@@ -60,7 +60,7 @@ class DatabaseManager:
             cls._db.sessions.create_index(
                 [("expires_at", ASCENDING)], expireAfterSeconds=0
             )
-            logger.info("✅ Database indexes ensured")
+            logger.info("Database indexes ensured")
         except Exception as e:
             logger.warning(f"Index creation warning (non-fatal): {e}")
 

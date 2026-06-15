@@ -19,7 +19,7 @@ def _get_model():
         from sentence_transformers import SentenceTransformer
         logger.info(f"Loading embedding model: {settings.embedding_model} (first run downloads ~90 MB)")
         _model = SentenceTransformer(settings.embedding_model)
-        logger.info("✅ Embedding model loaded")
+        logger.info("Embedding model loaded")
     return _model
 
 

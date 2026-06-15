@@ -198,10 +198,10 @@ def process_paper_background(paper_id: str, file_path: str):
             {"paper_id": paper_id},
             {"$set": {"predicted_impact_score": score}}
         )
-        logger.success(f"[{paper_id[:8]}] ✅ Processing complete. Impact score: {score:.2f}")
+        logger.success(f"[{paper_id[:8]}] Processing complete. Impact score: {score:.2f}")
 
     except Exception as e:
-        logger.error(f"[{paper_id[:8]}] ❌ Processing failed: {e}")
+        logger.error(f"[{paper_id[:8]}] Processing failed: {e}")
         col.update_one({"paper_id": paper_id}, {"$set": {
             "processing_status": "failed",
             "processing_error": str(e),

@@ -371,7 +371,7 @@ def insert_sample_papers():
     # Get an uploader user (prefer research_head, fallback to any)
     uploader = users_col.find_one({"role": "research_head"}) or users_col.find_one({})
     if not uploader:
-        print("  ❌  No users found! Run 'python scripts/init_db.py' first.\n")
+        print("  [ERROR] No users found! Run 'python scripts/init_db.py' first.\n")
         sys.exit(1)
 
     uploader_id = uploader["user_id"]
@@ -421,10 +421,10 @@ def insert_sample_papers():
         col.insert_one(doc)
         inserted += 1
         dept = paper["department"][:15].ljust(15)
-        print(f"  ✅  [{dept}] {paper['title'][:52]}")
+        print(f"  [OK]  [{dept}] {paper['title'][:52]}")
 
-    print(f"\n  📦  Inserted {inserted} new | Skipped {skipped} existing")
-    print(f"  📊  Total in DB: {col.count_documents({})}\n")
+    print(f"\n  Inserted {inserted} new | Skipped {skipped} existing")
+    print(f"  Total in DB: {col.count_documents({})}\n")
 
     # ── Embed all un-embedded papers into ChromaDB ────────────
     print("  🔢  Generating embeddings (sentence-transformers)...")
@@ -441,7 +441,7 @@ def insert_sample_papers():
              "venue": 1, "text_chunks": 1}
         ))
 
-        print(f"  📌  Embedding {len(to_embed)} papers into ChromaDB...\n")
+        print(f"  Embedding {len(to_embed)} papers into ChromaDB...\n")
 
         for i, paper_doc in enumerate(to_embed, 1):
             try:
@@ -451,15 +451,15 @@ def insert_sample_papers():
                     {"paper_id": paper_doc["paper_id"]},
                     {"$set": {"embedding_stored": True}}
                 )
-                print(f"     [{i:2d}/{len(to_embed)}] ✅  {paper_doc['title'][:52]}")
+                print(f"     [{i:2d}/{len(to_embed)}] [OK]  {paper_doc['title'][:52]}")
             except Exception as e:
-                print(f"     [{i:2d}/{len(to_embed)}] ⚠️   Failed: {e}")
+                print(f"     [{i:2d}/{len(to_embed)}] [WARN] Failed: {e}")
 
         stats = chroma.get_collection_stats()
-        print(f"\n  ✅  ChromaDB: {stats['total_embeddings']} total embeddings stored")
+        print(f"\n  ChromaDB: {stats['total_embeddings']} total embeddings stored")
 
     except Exception as e:
-        print(f"  ⚠️   ChromaDB embedding skipped: {e}")
+        print(f"  [WARN] ChromaDB embedding skipped: {e}")
         print("      RAG chatbot will not work until embeddings are generated.")
 
     # ── Final Summary ─────────────────────────────────────────
@@ -476,8 +476,8 @@ def insert_sample_papers():
     if years:
         print(f"  Year range     : {min(years)} – {max(years)}")
     print(f"  Unique authors : ~{len(authors)}")
-    print("\n  ➡️   Start the server: python main.py")
-    print("  🌐  Open in browser: http://localhost:8000\n")
+    print("\n  Start the server: python main.py")
+    print("  Open in browser: http://localhost:8000\n")
 
 
 if __name__ == "__main__":

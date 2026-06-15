@@ -290,12 +290,299 @@
   .empty-state { text-align:center; padding:60px 20px; color:var(--muted); }
   .empty-state .icon { font-size:48px; margin-bottom:16px; }
   .empty-state h3 { font-size:18px; color:var(--text); margin-bottom:8px; }
+
+  /* ── Markdown rendering inside AI chat bubbles ── */
+  .md-body { line-height:1.7; }
+  .md-body .md-p { margin: 0 0 10px; }
+  .md-body .md-p:last-child { margin-bottom: 0; }
+  .md-body .md-h1 { font-size:17px; font-weight:700; color:var(--text); margin:14px 0 6px; letter-spacing:-.02em; }
+  .md-body .md-h2 { font-size:15px; font-weight:700; color:var(--text); margin:12px 0 5px; letter-spacing:-.02em; }
+  .md-body .md-h3 { font-size:13px; font-weight:700; color:var(--accent); margin:10px 0 4px; text-transform:uppercase; letter-spacing:.06em; }
+  .md-body .md-ul, .md-body .md-ol { padding-left:20px; margin:6px 0 10px; }
+  .md-body .md-ul li, .md-body .md-ol li { margin-bottom:4px; }
+  .md-body .md-ul { list-style:disc; }
+  .md-body .md-ol { list-style:decimal; }
+  .md-body .md-ul li::marker { color:var(--accent); }
+  .md-body .md-ol li::marker { color:var(--accent2); }
+  .md-body .md-pre {
+    position:relative; background:rgba(6,15,29,.9); border:1px solid rgba(148,163,184,.12);
+    border-radius:10px; padding:14px 16px; margin:10px 0;
+    overflow-x:auto; font-family:'JetBrains Mono',monospace; font-size:12.5px;
+    line-height:1.6; color:#c9d8ec;
+  }
+  .md-body .md-pre .code-lang {
+    position:absolute; top:8px; right:12px;
+    font-size:10px; color:var(--muted); text-transform:uppercase; letter-spacing:.08em;
+  }
+  .md-body .md-code {
+    font-family:'JetBrains Mono',monospace; font-size:12px;
+    background:rgba(6,15,29,.75); border:1px solid rgba(148,163,184,.12);
+    padding:1px 6px; border-radius:5px; color:#9ce8da;
+  }
+  .md-body .md-blockquote {
+    border-left:3px solid var(--accent2); margin:8px 0;
+    padding:6px 14px; background:rgba(129,140,248,.07); border-radius:0 8px 8px 0;
+    color:var(--muted); font-style:italic;
+  }
+  .md-body .md-hr { border:none; border-top:1px solid var(--border); margin:12px 0; }
+  .md-body .md-link { color:var(--accent2); text-decoration:underline; text-underline-offset:2px; }
+  .md-body strong { color:var(--text); font-weight:700; }
+  .md-body em { color:#c4d4ea; font-style:italic; }
+
+  /* Polished research workspace theme */
+  :root {
+    --bg: #07101f;
+    --surface: #0b1628;
+    --surface2: #111f34;
+    --border: rgba(148, 163, 184, 0.14);
+    --accent: #65d6c1;
+    --accent2: #818cf8;
+    --accent3: #f7c66a;
+    --danger: #fb7185;
+    --text: #edf4ff;
+    --muted: #8b9bb2;
+    --card-bg: rgba(13, 27, 47, 0.78);
+    --shadow-sm: 0 8px 30px rgba(2, 8, 23, 0.22);
+    --shadow-lg: 0 28px 80px rgba(2, 8, 23, 0.46);
+  }
+  body {
+    background:
+      radial-gradient(circle at 82% 0%, rgba(99, 102, 241, 0.13), transparent 29rem),
+      radial-gradient(circle at 18% 85%, rgba(45, 212, 191, 0.08), transparent 26rem),
+      var(--bg);
+    letter-spacing: -0.01em;
+  }
+  body::before {
+    background-image:
+      linear-gradient(rgba(148, 163, 184, 0.025) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(148, 163, 184, 0.025) 1px, transparent 1px);
+    background-size: 56px 56px;
+    mask-image: linear-gradient(to bottom, black, transparent 90%);
+  }
+  ::selection { background: rgba(101, 214, 193, 0.25); color: #fff; }
+  ::-webkit-scrollbar { width: 8px; height: 8px; }
+  ::-webkit-scrollbar-thumb { background: #24344c; border-radius: 10px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+
+  .sidebar {
+    width: 272px;
+    background: rgba(7, 16, 31, 0.92);
+    border-right-color: var(--border);
+    box-shadow: 12px 0 40px rgba(2, 8, 23, 0.16);
+    backdrop-filter: blur(22px);
+  }
+  .sidebar-logo { padding: 24px 22px; }
+  .brand-lockup { display:flex; align-items:center; gap:12px; }
+  .brand-mark {
+    width: 40px; height: 40px; border-radius: 12px;
+    display:grid; place-items:center; flex:0 0 auto;
+    color:#07101f; font-size:17px; font-weight:800;
+    background: linear-gradient(145deg, #8be5d4, #818cf8);
+    box-shadow: 0 10px 24px rgba(101, 214, 193, 0.18);
+  }
+  .logo-title {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 19px; letter-spacing: -0.04em;
+    background: none; -webkit-text-fill-color: currentColor; color: var(--text);
+  }
+  .logo-sub { color:#667890; font-size:9px; letter-spacing:1.7px; margin-top:2px; }
+  .sidebar-nav { padding: 20px 14px; }
+  .nav-section { margin-bottom: 22px; }
+  .nav-label { padding:0 12px 9px; color:#53657c; font-size:9px; font-weight:700; }
+  .nav-item {
+    min-height: 42px; gap:12px; padding:10px 12px; margin-bottom:4px;
+    border-radius:10px; color:#8495aa; font-weight:500;
+  }
+  .nav-item .icon {
+    width:28px; height:28px; display:grid; place-items:center;
+    border-radius:8px; background:rgba(148,163,184,0.06); font-size:14px;
+    filter: saturate(.7);
+  }
+  .nav-item:hover { color:#dfe9f7; background:rgba(148,163,184,0.07); }
+  .nav-item.active {
+    color:#f3fffc; background:linear-gradient(90deg, rgba(101,214,193,.14), rgba(129,140,248,.07));
+    border-color:rgba(101,214,193,.15); box-shadow:inset 3px 0 0 var(--accent);
+  }
+  .nav-item.active .icon { color:var(--accent); background:rgba(101,214,193,.11); }
+  .sidebar-user { margin:0 12px 14px; padding:13px; border:1px solid var(--border); border-radius:14px; background:rgba(17,31,52,.65); }
+  .user-avatar { border-radius:10px; background:linear-gradient(145deg,var(--accent),var(--accent2)); box-shadow:0 7px 18px rgba(101,214,193,.12); }
+  .user-role { text-transform:capitalize; margin-top:2px; }
+  .main { margin-left:272px; min-width:0; }
+  .topbar {
+    min-height:82px; padding:18px clamp(24px,3vw,44px);
+    background:rgba(7,16,31,.72); border-bottom-color:var(--border); backdrop-filter:blur(22px);
+  }
+  .page-title { font-size:21px; letter-spacing:-.035em; }
+  .page-subtitle { color:#70839b; margin-top:3px; }
+  .status-badge { color:#9ce8da; background:rgba(101,214,193,.08); border-color:rgba(101,214,193,.16); font-weight:600; }
+  .status-dot { box-shadow:0 0 0 4px rgba(101,214,193,.1), 0 0 14px rgba(101,214,193,.7); }
+  .content { padding:clamp(24px,3vw,44px); max-width:1600px; width:100%; margin:0 auto; }
+  .section.active { animation:sectionIn .32s ease both; }
+  @keyframes sectionIn { from { opacity:0; transform:translateY(5px); } to { opacity:1; transform:none; } }
+  .page-header { margin-bottom:26px; }
+  .page-header h2 { font-family:'Space Grotesk',sans-serif; font-size:25px; letter-spacing:-.045em; }
+  .page-header p { color:#7f91a8; margin-top:6px; max-width:720px; line-height:1.6; }
+
+  .card, .stat-card {
+    background:linear-gradient(145deg, rgba(16,32,54,.9), rgba(10,23,41,.82));
+    border-color:var(--border); border-radius:16px; box-shadow:var(--shadow-sm);
+  }
+  .card { padding:24px; }
+  .card-title { color:#91a2b7; font-size:10px; font-weight:700; letter-spacing:1.35px; }
+  .stats-grid { grid-template-columns:repeat(4,minmax(0,1fr)); gap:18px; margin-bottom:22px; }
+  .stat-card { position:relative; overflow:hidden; padding:22px; min-height:138px; }
+  .stat-card::after {
+    content:''; position:absolute; width:82px; height:82px; right:-26px; top:-28px;
+    border-radius:50%; background:var(--accent2); opacity:.055; filter:blur(1px);
+  }
+  .stat-card:hover { border-color:rgba(101,214,193,.3); transform:translateY(-3px); box-shadow:0 16px 38px rgba(2,8,23,.28); }
+  .stat-label { color:#7d8fa6; font-weight:700; }
+  .stat-value { font-family:'Space Grotesk',sans-serif; font-size:34px; letter-spacing:-.055em; margin-top:12px; }
+  .stat-value.green { color:#86dfce; } .stat-value.blue { color:#9ca5ff; } .stat-value.amber { color:#f7cd7d; }
+  .stat-sub { color:#62758d; margin-top:5px; }
+  .two-col { gap:22px; } .three-col { gap:18px; }
+
+  .form-label { color:#8597ad; font-size:10px; font-weight:700; letter-spacing:.9px; }
+  .form-input, .form-select, .form-textarea, .chat-input {
+    background:rgba(6,15,29,.72); border-color:rgba(148,163,184,.16); border-radius:10px;
+    color:var(--text); min-height:44px; box-shadow:inset 0 1px 0 rgba(255,255,255,.015);
+  }
+  .form-input::placeholder, .form-textarea::placeholder, .chat-input::placeholder { color:#4f6279; }
+  .form-input:hover, .form-select:hover, .form-textarea:hover, .chat-input:hover { border-color:rgba(148,163,184,.26); }
+  .form-input:focus, .form-select:focus, .form-textarea:focus, .chat-input:focus {
+    border-color:rgba(101,214,193,.65); box-shadow:0 0 0 3px rgba(101,214,193,.08);
+  }
+  .btn { min-height:42px; border-radius:10px; letter-spacing:-.01em; }
+  .btn-primary { color:#06111f; background:linear-gradient(135deg,#7fe0ce,#66cbb8); box-shadow:0 8px 24px rgba(101,214,193,.13); }
+  .btn-primary:hover { background:linear-gradient(135deg,#91ead9,#72d6c3); box-shadow:0 12px 28px rgba(101,214,193,.22); }
+  .btn-secondary { background:rgba(17,31,52,.7); border-color:var(--border); }
+  .btn-secondary:hover { border-color:rgba(129,140,248,.42); background:rgba(24,40,65,.8); }
+  .tabs { background:rgba(6,15,29,.66); border:1px solid var(--border); padding:5px; border-radius:11px; }
+  .tab { padding:9px; border-radius:8px; }
+  .tab.active { background:#182940; box-shadow:0 4px 14px rgba(2,8,23,.24); }
+
+  .auth-page { padding:28px; position:relative; overflow:hidden; }
+  .auth-page::before, .auth-page::after { content:''; position:absolute; border-radius:50%; filter:blur(1px); pointer-events:none; }
+  .auth-page::before { width:520px; height:520px; top:-270px; right:-120px; background:radial-gradient(circle,rgba(129,140,248,.2),transparent 68%); }
+  .auth-page::after { width:480px; height:480px; bottom:-290px; left:-130px; background:radial-gradient(circle,rgba(101,214,193,.14),transparent 68%); }
+  .auth-shell {
+    width:min(1040px,100%); min-height:620px; display:grid; grid-template-columns:1.08fr .92fr;
+    position:relative; z-index:1; overflow:hidden; border:1px solid var(--border); border-radius:24px;
+    background:rgba(9,20,37,.88); box-shadow:var(--shadow-lg); backdrop-filter:blur(24px);
+  }
+  .auth-showcase {
+    position:relative; padding:54px; display:flex; flex-direction:column; justify-content:space-between;
+    background:
+      linear-gradient(150deg,rgba(16,41,62,.92),rgba(13,25,49,.95)),
+      radial-gradient(circle at 0 0,rgba(101,214,193,.2),transparent 50%);
+    border-right:1px solid var(--border); overflow:hidden;
+  }
+  .auth-showcase::after {
+    content:''; position:absolute; inset:0; opacity:.2;
+    background-image:linear-gradient(rgba(255,255,255,.05) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.05) 1px,transparent 1px);
+    background-size:42px 42px; mask-image:linear-gradient(135deg,black,transparent 76%);
+  }
+  .showcase-brand,.showcase-copy,.showcase-metrics { position:relative; z-index:1; }
+  .showcase-brand { display:flex; align-items:center; gap:12px; font-weight:700; font-size:17px; }
+  .showcase-copy h2 { max-width:410px; font-size:39px; line-height:1.08; letter-spacing:-.055em; }
+  .showcase-copy p { max-width:420px; color:#9aabc0; font-size:14px; line-height:1.75; margin-top:18px; }
+  .showcase-kicker { color:#87dfcf; font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:1.8px; margin-bottom:14px; }
+  .showcase-metrics { display:flex; gap:12px; }
+  .showcase-pill { padding:11px 14px; border:1px solid rgba(148,163,184,.14); border-radius:12px; background:rgba(6,15,29,.34); color:#a8b7c9; font-size:11px; }
+  .showcase-pill strong { display:block; color:#edf4ff; font-size:14px; margin-bottom:2px; }
+  .auth-card { width:auto; border:0; border-radius:0; padding:54px 48px; background:transparent; display:flex; flex-direction:column; justify-content:center; }
+  .auth-logo { text-align:left; margin-bottom:28px; }
+  .auth-logo h1 { font-family:'Space Grotesk',sans-serif; font-size:29px; letter-spacing:-.05em; background:none; -webkit-text-fill-color:currentColor; }
+  .auth-logo p { color:#7d90a8; line-height:1.6; }
+
+  table { font-size:13px; }
+  th { color:#6f8299; background:rgba(6,15,29,.28); font-size:9px; font-weight:700; padding:13px 16px; }
+  td { border-bottom-color:rgba(148,163,184,.09); padding:14px 16px; }
+  tr:hover td { background:rgba(129,140,248,.035); }
+  .badge { padding:4px 9px; font-weight:600; border:1px solid transparent; }
+  .badge-green { border-color:rgba(101,214,193,.12); color:#8ce3d3; }
+  .badge-blue { border-color:rgba(129,140,248,.12); color:#aab1ff; }
+  .badge-amber { border-color:rgba(247,198,106,.12); color:#f8d389; }
+  .badge-red { border-color:rgba(251,113,133,.12); }
+  .badge-gray { color:#94a3b8; }
+  .alert { border-radius:11px; line-height:1.5; }
+  .upload-drop { min-height:220px; display:flex; flex-direction:column; align-items:center; justify-content:center; border-color:rgba(148,163,184,.2); border-radius:16px; background:rgba(8,19,35,.55); }
+  .upload-drop:hover,.upload-drop.dragover { border-color:rgba(101,214,193,.55); background:rgba(101,214,193,.045); transform:translateY(-2px); }
+  .upload-drop .icon { width:58px; height:58px; display:grid; place-items:center; border-radius:16px; background:rgba(101,214,193,.09); font-size:25px; }
+  .chat-container { height:calc(100vh - 246px); }
+  .chat-messages { border-radius:16px; background:rgba(8,19,35,.62); padding:24px; }
+  .msg-avatar { border-radius:10px; }
+  .message.ai .msg-bubble { background:rgba(17,31,52,.86); border-radius:14px 14px 14px 4px; }
+  .message.user .msg-bubble { background:rgba(101,214,193,.1); border-color:rgba(101,214,193,.18); border-radius:14px 14px 4px 14px; }
+  .suggestion-chip { background:rgba(17,31,52,.65); border-color:var(--border); color:#8fa1b7; }
+  .suggestion-chip:hover { background:rgba(101,214,193,.07); border-color:rgba(101,214,193,.35); }
+  .progress-bar,.score-track { background:#17263b; }
+  .progress-fill,.score-fill { background:linear-gradient(90deg,var(--accent2),var(--accent)); }
+  .loading-state { min-height:180px; }
+
+  @media(max-width:1100px) {
+    .stats-grid { grid-template-columns:repeat(2,minmax(0,1fr)); }
+    .auth-shell { grid-template-columns:1fr 1fr; }
+    .auth-showcase { padding:42px; }
+    .showcase-copy h2 { font-size:33px; }
+  }
+  @media(max-width:800px) {
+    .auth-shell { display:block; min-height:0; max-width:520px; }
+    .auth-showcase { display:none; }
+    .auth-card { padding:42px 34px; }
+    .sidebar { width:82px; }
+    .sidebar-logo { padding:20px; }
+    .brand-lockup { justify-content:center; }
+    .brand-copy,.nav-label,.sidebar-user .user-info,.logout-btn { display:none; }
+    .sidebar-nav { padding:18px 12px; }
+    .nav-section { margin-bottom:10px; }
+    .nav-item { justify-content:center; padding:8px; font-size:0; }
+    .nav-item .icon { width:34px; height:34px; font-size:15px; }
+    .sidebar-user { padding:10px; justify-content:center; margin:0 10px 12px; }
+    .main { margin-left:82px; }
+    .topbar { padding:16px 22px; }
+    .content { padding:24px 20px; }
+  }
+  @media(max-width:600px) {
+    .auth-page { padding:14px; }
+    .auth-card { padding:34px 24px; }
+    .sidebar { position:fixed; width:100%; min-height:auto; height:70px; top:auto; right:0; flex-direction:row; border-right:0; border-top:1px solid var(--border); }
+    .sidebar-logo,.nav-label,.sidebar-user { display:none; }
+    .sidebar-nav { display:flex; width:100%; padding:8px 6px; overflow-x:auto; }
+    .nav-section { display:contents; }
+    .nav-item { flex:1; min-width:50px; margin:0 1px; min-height:52px; }
+    .nav-item.active { box-shadow:inset 0 -3px 0 var(--accent); }
+    .main { margin-left:0; padding-bottom:70px; }
+    .topbar { min-height:72px; }
+    .page-subtitle,.status-badge { display:none; }
+    .content { padding:20px 15px 28px; }
+    .stats-grid,.two-col,.three-col,.form-row { grid-template-columns:1fr; }
+    .stat-card { min-height:120px; }
+    .chat-container { height:calc(100vh - 205px); min-height:420px; }
+    .chat-input-area { gap:8px; }
+    .chat-input-area .btn { padding:10px 14px; }
+    .message { max-width:94%; }
+  }
 </style>
 </head>
 <body>
 
 <!-- ═══════════════════ AUTH PAGE ═══════════════════ -->
 <div id="authPage" class="auth-page">
+  <div class="auth-shell">
+    <section class="auth-showcase" aria-hidden="true">
+      <div class="showcase-brand"><span class="brand-mark">R</span> ResearchIQ</div>
+      <div class="showcase-copy">
+        <div class="showcase-kicker">Institutional intelligence</div>
+        <h2>Turn research activity into clear, actionable insight.</h2>
+        <p>Explore impact, uncover emerging themes, and connect the people moving your institution's research forward.</p>
+      </div>
+      <div class="showcase-metrics">
+        <div class="showcase-pill"><strong>AI-assisted</strong>Discovery</div>
+        <div class="showcase-pill"><strong>Live</strong>Analytics</div>
+        <div class="showcase-pill"><strong>Connected</strong>Knowledge</div>
+      </div>
+    </section>
   <div class="auth-card">
     <div class="auth-logo">
       <h1>ResearchIQ</h1>
@@ -368,6 +655,7 @@
       <button class="btn btn-primary btn-full" onclick="doRegister()">Create Account</button>
     </div>
   </div>
+  </div>
 </div>
 
 <!-- ═══════════════════ MAIN APP ═══════════════════ -->
@@ -375,8 +663,13 @@
   <!-- Sidebar -->
   <aside class="sidebar">
     <div class="sidebar-logo">
-      <div class="logo-title">ResearchIQ</div>
-      <div class="logo-sub">Intelligence Platform</div>
+      <div class="brand-lockup">
+        <div class="brand-mark">R</div>
+        <div class="brand-copy">
+          <div class="logo-title">ResearchIQ</div>
+          <div class="logo-sub">Intelligence Platform</div>
+        </div>
+      </div>
     </div>
     <nav class="sidebar-nav">
       <div class="nav-section">
@@ -839,16 +1132,16 @@ async function loadDashboard() {
       Plotly.newPlot('deptChart', [{
         x: deptData.map(d=>d.count), y: deptData.map(d=>d.department),
         type:'bar', orientation:'h',
-        marker:{ color:'rgba(74,222,128,0.7)', line:{color:'rgba(74,222,128,1)',width:1} }
+        marker:{ color:'rgba(101,214,193,0.72)', line:{color:'rgba(101,214,193,1)',width:1} }
       }], plotlyLayout(''), {responsive:true, displayModeBar:false});
     }
     if (yearData.length) {
       Plotly.newPlot('yearChart', [{
         x: yearData.map(d=>d.year), y: yearData.map(d=>d.count),
         type:'scatter', mode:'lines+markers', fill:'tozeroy',
-        line:{color:'rgba(96,165,250,0.8)',width:2},
-        marker:{color:'rgba(96,165,250,1)'},
-        fillcolor:'rgba(96,165,250,0.1)'
+        line:{color:'rgba(129,140,248,0.88)',width:2},
+        marker:{color:'rgba(129,140,248,1)'},
+        fillcolor:'rgba(129,140,248,0.1)'
       }], plotlyLayout(''), {responsive:true, displayModeBar:false});
     }
   } catch(e) {
@@ -897,6 +1190,78 @@ async function sendMessage() {
   btn.disabled = false;
 }
 
+/**
+ * Lightweight markdown → HTML renderer for chat bubbles.
+ * Handles: headings, bold, italic, inline code, code blocks,
+ * unordered lists, ordered lists, blockquotes, horizontal rules,
+ * and bare URLs.
+ */
+function renderMarkdown(md) {
+  if (!md) return '';
+  let html = md
+    // Escape HTML entities first to prevent XSS
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;');
+
+  // Fenced code blocks ```lang\n...\n```
+  html = html.replace(/```(\w*)\n?([\s\S]*?)```/g, (_, lang, code) => {
+    const langLabel = lang ? `<span class="code-lang">${lang}</span>` : '';
+    return `<pre class="md-pre">${langLabel}<code>${code.trimEnd()}</code></pre>`;
+  });
+
+  // Headings ### ## #
+  html = html.replace(/^### (.+)$/gm, '<h3 class="md-h3">$1</h3>');
+  html = html.replace(/^## (.+)$/gm,  '<h2 class="md-h2">$1</h2>');
+  html = html.replace(/^# (.+)$/gm,   '<h1 class="md-h1">$1</h1>');
+
+  // Horizontal rule
+  html = html.replace(/^---+$/gm, '<hr class="md-hr">');
+
+  // Blockquote
+  html = html.replace(/^&gt; (.+)$/gm, '<blockquote class="md-blockquote">$1</blockquote>');
+
+  // Unordered lists  - item or * item
+  html = html.replace(/((?:^[*\-] .+\n?)+)/gm, match => {
+    const items = match.trim().split('\n').map(l => `<li>${l.replace(/^[*\-] /, '')}</li>`).join('');
+    return `<ul class="md-ul">${items}</ul>`;
+  });
+
+  // Ordered lists  1. item
+  html = html.replace(/((?:^\d+\. .+\n?)+)/gm, match => {
+    const items = match.trim().split('\n').map(l => `<li>${l.replace(/^\d+\. /, '')}</li>`).join('');
+    return `<ol class="md-ol">${items}</ol>`;
+  });
+
+  // Bold **text** or __text__
+  html = html.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+  html = html.replace(/__(.+?)__/g, '<strong>$1</strong>');
+
+  // Italic *text* or _text_
+  html = html.replace(/\*(.+?)\*/g, '<em>$1</em>');
+  html = html.replace(/_(.+?)_/g, '<em>$1</em>');
+
+  // Inline code `code`
+  html = html.replace(/`([^`]+)`/g, '<code class="md-code">$1</code>');
+
+  // Bare URLs → clickable links
+  html = html.replace(/(https?:\/\/[^\s<]+)/g, '<a class="md-link" href="$1" target="_blank" rel="noopener">$1</a>');
+
+  // Paragraphs — blank lines become <p> breaks
+  html = html.replace(/\n{2,}/g, '</p><p class="md-p">');
+  html = `<p class="md-p">${html}</p>`;
+
+  // Single newlines inside paragraphs
+  html = html.replace(/\n/g, '<br>');
+
+  // Clean up empty <p> tags that wrap block elements
+  html = html.replace(/<p class="md-p"><\/p>/g, '');
+  html = html.replace(/<p class="md-p">(<(?:ul|ol|pre|h[123]|hr|blockquote))/g, '$1');
+  html = html.replace(/(<\/(?:ul|ol|pre|h[123]|hr|blockquote)>)<\/p>/g, '$1');
+
+  return html;
+}
+
 function appendMessage(role, text, sources=[]) {
   const container = document.getElementById('chatMessages');
   const div = document.createElement('div');
@@ -906,9 +1271,10 @@ function appendMessage(role, text, sources=[]) {
       <div class="msg-sources-label">📎 Sources (${sources.length})</div>
       ${sources.map(s=>`<span class="source-chip" title="${s.paper_id}">${(s.title||'').substring(0,40)}… (${(s.similarity*100).toFixed(0)}%)</span>`).join('')}
     </div>` : '';
+  const bodyHTML = role === 'ai' ? renderMarkdown(text) : text.replace(/\n/g,'<br>');
   div.innerHTML = `
     <div class="msg-avatar ${role}">${role==='ai'?'AI':'👤'}</div>
-    <div class="msg-bubble">${text.replace(/\n/g,'<br>')}${sourcesHTML}</div>`;
+    <div class="msg-bubble md-body">${bodyHTML}${sourcesHTML}</div>`;
   container.appendChild(div);
   container.scrollTop = container.scrollHeight;
   return div;
@@ -1074,7 +1440,7 @@ async function loadTrends() {
     const clusters = data.clusters || {};
     const clusterList = Object.values(clusters);
 
-    const kColors = ['rgba(74,222,128,0.8)','rgba(96,165,250,0.8)','rgba(245,158,11,0.8)','rgba(248,113,113,0.8)','rgba(167,139,250,0.8)','rgba(34,211,238,0.8)'];
+    const kColors = ['rgba(101,214,193,0.8)','rgba(129,140,248,0.8)','rgba(247,198,106,0.8)','rgba(251,113,133,0.8)','rgba(168,139,250,0.8)','rgba(56,189,248,0.8)'];
 
     const kwHTML = keywords.slice(0,20).map((k,i) => {
       const size = Math.max(12, Math.min(24, 12 + k.count*2));
@@ -1173,18 +1539,18 @@ async function loadCollaboration() {
       </div>`;
 
     // Draw network with Plotly
-    const colors = ['rgba(74,222,128,0.8)','rgba(96,165,250,0.8)','rgba(245,158,11,0.8)','rgba(248,113,113,0.8)'];
+    const colors = ['rgba(101,214,193,0.8)','rgba(129,140,248,0.8)','rgba(247,198,106,0.8)','rgba(251,113,133,0.8)'];
     Plotly.newPlot('networkChart', [
-      { x:edgeX, y:edgeY, type:'scatter', mode:'lines', line:{color:'rgba(100,116,139,0.3)',width:1}, hoverinfo:'none' },
+      { x:edgeX, y:edgeY, type:'scatter', mode:'lines', line:{color:'rgba(139,155,178,0.26)',width:1}, hoverinfo:'none' },
       {
         x: graph.nodes.map(n=>n.x), y: graph.nodes.map(n=>n.y),
         type:'scatter', mode:'markers+text',
         text: graph.nodes.map(n=>n.id.split(' ').slice(-1)[0]),
-        textposition:'top center', textfont:{size:9, color:'rgba(226,232,240,0.7)'},
+        textposition:'top center', textfont:{size:9, color:'rgba(237,244,255,0.72)'},
         marker:{
           size: graph.nodes.map(n=>Math.max(8,Math.min(30,8+n.degree*3))),
           color: graph.nodes.map(n=>n.degree),
-          colorscale:[['0','rgba(96,165,250,0.7)'],['1','rgba(74,222,128,0.9)']],
+          colorscale:[['0','rgba(129,140,248,0.72)'],['1','rgba(101,214,193,0.92)']],
           line:{color:'rgba(255,255,255,0.2)',width:1}
         },
         hovertemplate:'<b>%{customdata}</b><br>Papers: %{meta}<extra></extra>',
@@ -1303,7 +1669,7 @@ async function loadResearchHead() {
           <div class="card-title">Trending Keywords</div>
           <div class="keyword-cloud">
             ${keywords.slice(0,15).map((k,i)=>{
-              const colors=['rgba(74,222,128','rgba(96,165,250','rgba(245,158,11','rgba(248,113,113','rgba(167,139,250'];
+              const colors=['rgba(101,214,193','rgba(129,140,248','rgba(247,198,106','rgba(251,113,133','rgba(168,139,250'];
               const c=colors[i%colors.length];
               return `<span class="keyword-tag" style="background:${c},0.15);color:${c},1);font-size:${Math.max(11,Math.min(20,11+k.count))}px">${k.keyword} <strong>${k.count}</strong></span>`;
             }).join('')}
@@ -1340,7 +1706,7 @@ async function loadResearchHead() {
         values: deptChartData.map(d=>d[1]),
         type:'pie',
         hole:0.4,
-        marker:{colors:['rgba(74,222,128,0.8)','rgba(96,165,250,0.8)','rgba(245,158,11,0.8)','rgba(248,113,113,0.8)','rgba(167,139,250,0.8)','rgba(34,211,238,0.8)','rgba(251,191,36,0.8)','rgba(52,211,153,0.8)']},
+        marker:{colors:['rgba(101,214,193,0.8)','rgba(129,140,248,0.8)','rgba(247,198,106,0.8)','rgba(251,113,133,0.8)','rgba(168,139,250,0.8)','rgba(56,189,248,0.8)','rgba(251,191,36,0.8)','rgba(45,212,191,0.8)']},
         textfont:{color:'#e2e8f0'}
       }], {
         ...plotlyLayout(''),
@@ -1358,12 +1724,12 @@ async function loadResearchHead() {
 // ═══════════════════════════════════════════════════════════
 function plotlyLayout(title) {
   return {
-    title: title ? {text:title, font:{color:'#94a3b8',size:13}} : undefined,
+    title: title ? {text:title, font:{color:'#91a2b7',size:13}} : undefined,
     paper_bgcolor: 'transparent',
     plot_bgcolor: 'transparent',
-    font: {color:'#64748b', family:'Space Grotesk'},
-    xaxis: {gridcolor:'rgba(30,42,58,0.8)', zerolinecolor:'rgba(30,42,58,0.8)', tickfont:{color:'#64748b'}},
-    yaxis: {gridcolor:'rgba(30,42,58,0.8)', zerolinecolor:'rgba(30,42,58,0.8)', tickfont:{color:'#64748b'}},
+    font: {color:'#8b9bb2', family:'Space Grotesk'},
+    xaxis: {gridcolor:'rgba(148,163,184,0.1)', zerolinecolor:'rgba(148,163,184,0.12)', tickfont:{color:'#71849c'}},
+    yaxis: {gridcolor:'rgba(148,163,184,0.1)', zerolinecolor:'rgba(148,163,184,0.12)', tickfont:{color:'#71849c'}},
     margin: {l:50, r:20, t:30, b:50},
   };
 }

@@ -29,7 +29,7 @@ logger.add("./data/logs/app.log", rotation="10 MB", level="DEBUG", encoding="utf
 async def lifespan(app: FastAPI):
     """Application startup and shutdown lifecycle."""
     logger.info("=" * 55)
-    logger.info("  🚀  ResearchIQ — Starting up...")
+    logger.info("  ResearchIQ — Starting up...")
     logger.info("=" * 55)
 
     # ── Ensure data directories exist ────────────────────────
@@ -46,7 +46,7 @@ async def lifespan(app: FastAPI):
         from backend.database import DatabaseManager
         DatabaseManager.connect()
     except Exception as e:
-        logger.error(f"❌ MongoDB startup failed: {e}")
+        logger.error(f"MongoDB startup failed: {e}")
         logger.warning("Some features will be unavailable until MongoDB connects.")
 
     # ── Initialize ChromaDB (vector store) ───────────────────
@@ -54,11 +54,11 @@ async def lifespan(app: FastAPI):
         from backend.vectordb.chroma_manager import ChromaManager
         chroma = ChromaManager()
         stats = chroma.get_collection_stats()
-        logger.info(f"✅ ChromaDB ready — {stats['total_embeddings']} embeddings stored")
+        logger.info(f"ChromaDB ready — {stats['total_embeddings']} embeddings stored")
     except Exception as e:
         logger.warning(f"ChromaDB init warning (will retry on first use): {e}")
 
-    logger.info("✅ ResearchIQ is ready!  →  http://localhost:8000")
+    logger.info("ResearchIQ is ready!  ->  http://localhost:8000")
     logger.info("=" * 55)
 
     yield  # ← application runs here

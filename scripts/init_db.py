@@ -73,9 +73,9 @@ def init_database():
 
     existing_users = db.users.count_documents({})
     if existing_users > 0:
-        print(f"⚠️  Database already has {existing_users} users. Skipping seed.")
+        print(f"WARNING: Database already has {existing_users} users. Skipping seed.")
         print("   Use --reset flag to wipe and re-seed.\n")
-        print("📋 Existing credentials:")
+        print("Existing credentials:")
         print("   Research Head : head@university.edu / password123")
         print("   Faculty       : alice@university.edu / password123")
         print("   Student       : charlie@university.edu / password123\n")
@@ -85,30 +85,30 @@ def init_database():
     for user_data in DEMO_USERS:
         try:
             create_user(UserCreate(**user_data))
-            print(f"  ✅  {user_data['email']:35s}  [{user_data['role']}]")
+            print(f"  [OK]  {user_data['email']:35s}  [{user_data['role']}]")
         except Exception as e:
-            print(f"  ⚠️  {user_data['email']:35s}  skipped: {e}")
+            print(f"  [SKIP] {user_data['email']:35s}  skipped: {e}")
 
     print("\n" + "=" * 60)
-    print("  ✅  Database initialized successfully!")
+    print("  Database initialized successfully!")
     print("=" * 60)
-    print("\n📋 Demo Login Credentials:")
+    print("\nDemo Login Credentials:")
     print("   Research Head : head@university.edu     / password123")
     print("   Faculty       : alice@university.edu    / password123")
     print("   Faculty       : bob@university.edu      / password123")
     print("   Student       : charlie@university.edu  / password123")
     print("   Student       : diana@university.edu    / password123")
-    print("\n➡️  Next step: python scripts/generate_sample_papers.py\n")
+    print("\n  Next step: python scripts/generate_sample_papers.py\n")
 
 
 if __name__ == "__main__":
     if "--reset" in sys.argv:
-        print("\n⚠️  RESET mode — dropping all collections...\n")
+        print("\nRESET mode — dropping all collections...\n")
         DatabaseManager.connect()
         db = DatabaseManager.get_db()
         for coll in ["users", "papers", "sessions", "analytics_cache"]:
             db[coll].drop()
-            print(f"   🗑️  Dropped: {coll}")
+            print(f"   Dropped: {coll}")
 
         # Also wipe ChromaDB
         import shutil
@@ -117,7 +117,7 @@ if __name__ == "__main__":
         if chroma_path.exists():
             shutil.rmtree(chroma_path)
             chroma_path.mkdir(parents=True, exist_ok=True)
-            print("   🗑️  Wiped ChromaDB")
+            print("   Wiped ChromaDB")
         print()
 
     init_database()
