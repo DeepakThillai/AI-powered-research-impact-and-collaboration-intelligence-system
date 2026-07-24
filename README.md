@@ -13,7 +13,7 @@ The application uses a FastAPI backend and a responsive single-page frontend. Pa
 - Retrieval-augmented research assistant powered by Groq
 - Department and publication-year dashboards
 - TF-IDF and KMeans research trend detection
-- NetworkX co-authorship and collaboration analysis
+- NetworkX co-authorship and collaboration analysis.
 - Random Forest research-impact prediction
 - Research-head reporting and institution-wide analytics
 - Responsive frontend with dashboards, charts, tables, and upload workflows
